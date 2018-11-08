@@ -1,0 +1,22 @@
+<form method="post" action="/api/incluir/Socio">
+    <input name="nome" placeholder="Nome" maxlength="100" required>
+    <input name="rg" placeholder="RG" type="number" min="0" max="999999999" required>
+    <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
+    
+    <label for="dataNascimento">Data de Nascimento</label>
+    <input name="dataNascimento" type="date" required>
+    
+    <input name="endereco" placeholder="Endereço completo" maxlength="100" required>
+    <input name="senha" placeholder="Senha" type="password" maxlength="100" required>
+    <input placeholder="Confirmar Senha" type="password" maxlength="100" required>
+
+    <input type="checkbox" name="altoNivel">
+    <label for="altoNivel">Alto Nível</label>
+
+    <input name="cnpjEmpresa" type="number" hidden readonly>
+
+    <button type="submit">Enviar</button>
+</form>
+<br>
+<p>Lista de valores salvos</p>
+<div id="valores-salvos">Aguardando resposta do banco de dados...</div>

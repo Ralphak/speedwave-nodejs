@@ -1,0 +1,25 @@
+<form method="post" action="/api/incluir/Embarcacao">
+    <input name="nome" placeholder="Nome" maxlength="100" required>
+    <input name="inscricao" placeholder="Inscrição" maxlength="20" required>
+    
+    <label for="dataInscricao">Data de Inscrição</label>
+    <input name="dataInscricao" type="date" required>
+    <label for="validade">Validade do Documento</label>
+    <input name="validade" type="date" required>
+    
+    <input name="passageirosTotal" placeholder="Total de passageiros" type="number" min="0" max="9999" required>
+    <input name="tripulantes" placeholder="Total de tripulantes" type="number" min="0" max="9999" required>
+    <input name="atividade" placeholder="Atividade/Serviço" maxlength="100" required>
+    <input name="areaNavegacao" placeholder="Área de Navegação" maxlength="100" required>
+    <input name="cidade" placeholder="Cidade do serviço" maxlength="100" required>
+    <input name="caracteristicas" placeholder="Características" maxlength="1000" required>
+    <input name="detalhes" placeholder="Detalhes" maxlength="1000">
+    <input name="roteiro" placeholder="Roteiro" maxlength="1000" required>
+    
+    <input name="cnpjEmpresa" type="number" hidden readonly>
+    
+    <button type="submit">Enviar</button>
+</form>
+<br>
+<p>Lista de valores salvos</p>
+<div id="valores-salvos">Aguardando resposta do banco de dados...</div>

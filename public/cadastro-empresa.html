@@ -1,0 +1,25 @@
+<form method="post" action="/api/incluir/Empresa">
+    <input name="razaoSocial" placeholder="Razão Social" maxlength="100" required>
+    <input name="cnpj" placeholder="CNPJ" type="number" min="0" max="99999999999999" required>
+    <input name="agencia" placeholder="Agência" type="number" min="0" max="99999" required>
+    <input name="conta" placeholder="Conta" type="number" min="0" max="9999999" required>
+    <input name="tipoConta" placeholder="Tipo de Conta" maxlength="100" required>
+    <input name="titularConta" placeholder="Titular da Conta" maxlength="100" required>
+    
+    <label for="dataInicio">Data de Início de Atividades</label>
+    <input name="dataInicio" type="date" required>
+    
+    <input name="endereco" placeholder="Endereço completo" maxlength="100" required>
+    <input name="telefone" placeholder="Telefone" type="number" min="0" max="99999999999" required>
+    <input name="email" placeholder="Email" type="email" maxlength="100" required>
+    <input name="senha" placeholder="Senha" type="password" maxlength="100" required>
+    <input placeholder="Confirmar Senha" type="password" maxlength="100" required>
+
+    <input type="checkbox" name="concordo" required>
+    <label for="concordo">Concordo com os Termos de Uso</label>
+
+    <button type="submit">Enviar</button>
+</form>
+<br>
+<p>Lista de valores salvos</p>
+<div id="valores-salvos">Aguardando resposta do banco de dados...</div>
