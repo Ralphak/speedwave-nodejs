@@ -7,14 +7,15 @@ const express = require("express"),
 
 //Busca todas as entradas de uma tabela, ou as definidas por ?colunas=x,y&filtro=where...
 router.get('/api/buscar/:tabela', (req, res)=>{
-    if(req.query.colunas == undefined){
+    if(!req.query.colunas){
         req.query.colunas = "*";
     }
     mysql.query(`select ${req.query.colunas} from ${req.params.tabela} ${req.query.filtro}`, (err, results)=>{
         if (err) {
-            res.send(err.stack);
+            res.send(err.sqlMessage);
             return;
         }
+        results.forEach(dado => {if(dado.senha) delete dado.senha}); //Retira a senha da busca, por segurança
         res.json(results);
     });
 });
@@ -26,7 +27,7 @@ router.post('/api/incluir/:tabela', (req, res)=>{
     }
     mysql.query("insert into " + req.params.tabela + " set ?", req.body, (err, results)=>{
         if (err) {
-            res.send(err.stack);
+            res.send(err.sqlMessage);
             return;
         }
         console.log("Linhas afetadas: " + results.affectedRows);

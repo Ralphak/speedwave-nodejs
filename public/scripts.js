@@ -44,14 +44,14 @@ function carregarPagina(pagina){
         //Parâmetros para páginas específicas
         switch(pagina){
             case "cadastro-empresa":
-                await recuperarTabela("/api/buscar/Empresa");
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Empresa");
                 break;
             case "cadastro-socio":
-                await recuperarTabela("/api/buscar/Socio?filtro=where cnpjEmpresa="+usuario.cnpj);
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Socio?filtro=where cnpjEmpresa="+usuario.cnpj);
                 document.getElementsByName("cnpjEmpresa")[0].value = usuario.cnpj;
                 break;
             case "cadastro-embarcacao":
-                await recuperarTabela("/api/buscar/Embarcacao?filtro=where cnpjEmpresa="+usuario.cnpj);
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Embarcacao?filtro=where cnpjEmpresa="+usuario.cnpj);
                 document.getElementsByName("cnpjEmpresa")[0].value = usuario.cnpj;
                 break;
             case "login":
@@ -85,7 +85,6 @@ function permitirAcesso(pagina){
     return true;
 }
 
-
 //Recupera dados do servidor.
 async function recuperarDados (url) {
     let dados;
@@ -100,12 +99,26 @@ async function recuperarDados (url) {
     return dados;
 };
 
-//Função padrão para recuperar dados de uma tabela
-async function recuperarTabela (url){
-    let valoresSalvos = await recuperarDados(url);
-        if(valoresSalvos.length==0){
-            document.getElementById("valores-salvos").innerHTML = "Nenhum cadastro encontrado.";
-        } else{
-            document.getElementById("valores-salvos").innerHTML = JSON.stringify(valoresSalvos);
-        }
+//Gera uma tabela a partir dos dados recuperados
+async function gerarTabela (url){
+    let dados = await recuperarDados(url);
+    if(dados.length==0){
+        return "Nenhum registro encontrado.";
+    }
+    let tabela = "<table><tr>";
+    //Cabeçalho
+    Object.keys(dados[0]).forEach((nome) =>{
+        tabela +=`<th>${nome}</th>`;
+    });
+    tabela += "</tr>";
+    //Valores dos objetos
+    dados.forEach(dado => {
+        tabela += "<tr>";
+        Object.keys(dado).map(valor => {
+            tabela += `<td>${dado[valor]}</td>`;
+        });
+        tabela += "</tr>";
+    });
+    tabela += "</table>";
+    return tabela;
 }
