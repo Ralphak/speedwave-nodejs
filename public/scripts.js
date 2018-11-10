@@ -66,7 +66,6 @@ function carregarPagina(pagina){
 
 //Verificar permissões de acesso
 function permitirAcesso(pagina){
-    console.log(pagina);
     switch(pagina){
         //Permissões para usuário logado
         case "#cadastro-socio":

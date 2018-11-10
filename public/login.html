@@ -1,5 +1,10 @@
 <p id="msg-flash"></p>
 <form method="post" action="/api/login">
+    <input type="radio" name="vinculo" value="empresa" required>
+    <label for="vinculo">Empresa</label>
+    <input type="radio" name="vinculo" value="cliente" disabled>
+    <label for="vinculo">Cliente</label>
+    
     <input type="number" name="usuario" placeholder="CNPJ" required>
     <input type="password" name="senha" placeholder="Senha" required>
     <button type="submit">Entrar</button>

@@ -6,10 +6,10 @@ const mysql = require('mysql'),
         database : 'u526894748_speed'
     }); */
     connection = mysql.createConnection({
-        host     : 'db4free.net',
-        user     : 'rafalves',
-        password : process.env.MYSQL_PASS,
-        database : 'teste_rafalves'
+        host     : 'localhost',
+        user     : 'root',
+        password : "root",
+        database : 'Speedwave'
     });
 
 module.exports = connection;

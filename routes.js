@@ -1,8 +1,7 @@
-const
-    express = require("express"),
+const express = require("express"),
     router = express.Router(),
     mysql = require("./mysql.js"),
-    passport = require("./passport.js"),
+    loginAPI = require("./login-api.js"),
     crypto = require("crypto");
     
 
@@ -40,12 +39,22 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
     res.send("rota de empresa");
 });
 
-//Requisição de login
-router.post('/api/login', passport.authenticate('local', {
-    failureFlash : true,
-    failureRedirect : '/#login',
-    successRedirect : '/'
-}));
+//Requisição de login.
+router.post('/api/login', (req, res)=>{
+    let tabela, chave;
+    switch(req.body.vinculo){
+        case "empresa":
+            tabela="Empresa";
+            chave="cnpj";
+            break;
+    }
+    let login = new loginAPI(tabela, chave);
+    login.passport.authenticate('local', {
+        failureFlash : true,
+        failureRedirect : '/#login',
+        successRedirect : '/'
+    })(req, res);
+});
 
 //Desconectar usuário
 router.get('/api/logout', function(req, res) {
@@ -56,7 +65,7 @@ router.get('/api/logout', function(req, res) {
 //Enviar dados do backend para o frontend
 router.get('/api/dados/:dados', (req, res)=>{
     if(req.params.dados=="usuario" && req.user){
-        res.json(req.user[0]);
+        res.json(req.user);
     } else if(req.params.dados=="flash" && res.locals.flash.length > 0){
         res.json(res.locals.flash.pop());
     } else{
