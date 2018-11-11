@@ -1,10 +1,5 @@
 const mysql = require('mysql'),
-    connection = mysql.createPool({
-        host     : 'sql141.main-hosting.eu',
-        user     : 'u526894748_pic',
-        password : process.env.MYSQL_PASS,
-        database : 'u526894748_speed'
-    });
+    connection = mysql.createPool(process.env.DATABASE_URL);
     /* connection = mysql.createConnection({
         host     : 'localhost',
         user     : 'root',
