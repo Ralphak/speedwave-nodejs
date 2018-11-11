@@ -14,7 +14,6 @@ function loginAPI (tabela, chave){
   passport.deserializeUser(function(id, done) {
     mysql.query(`select * from ${tabela} where ${chave}=${id} limit 1`, (err, user)=>{
       user = user.pop();
-      delete user['senha'];
       done(err, user);
     });
   });

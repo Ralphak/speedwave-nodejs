@@ -9,7 +9,7 @@ const mysql = require('mysql'),
         host     : 'localhost',
         user     : 'root',
         password : "root",
-        database : 'Speedwave'
+        database : 'teste_speed'
     });
 
 module.exports = connection;

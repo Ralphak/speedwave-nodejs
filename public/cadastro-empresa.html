@@ -1,25 +1,45 @@
-<form method="post" action="/api/incluir/Empresa">
-    <input name="razaoSocial" placeholder="Razão Social" maxlength="100" required>
+<h3>Cadastro de Empresa</h3>
+
+<!-- TODO: Adicionar o vínculo ao formulário -->
+<input type="radio" name="vinculo" value="proprietario" checked>
+<label for="vinculo">Proprietário de Embarcação</label>
+<br>
+<input type="radio" name="vinculo" value="vendedor" disabled>
+<label for="vinculo">Agência de Turismo ou Vendedor Autônomo</label>
+
+<form method="post" action="/api/cadastrar/empresa">
+    <input name="razao" placeholder="Razão Social" maxlength="255" required>
     <input name="cnpj" placeholder="CNPJ" type="number" min="0" max="99999999999999" required>
+    <input name="info" placeholder="Informações (opcional)" maxlength="255">
+    <br><br>
+    <label for="data_inicio">Data de Início de Atividades</label><br>
+    <input name="data_inicio" type="date" required>
+    <br><br>
+    <label>Dados de Pagamento</label><br>
+    <input name="titular" placeholder="Titular da Conta" maxlength="100" required>
+    <input name="cpf" placeholder="CPF do Titular" type="number" min="0" max="99999999999" required>
+    <input name="banco" placeholder="Banco" maxlength="100" required>
     <input name="agencia" placeholder="Agência" type="number" min="0" max="99999" required>
     <input name="conta" placeholder="Conta" type="number" min="0" max="9999999" required>
-    <input name="tipoConta" placeholder="Tipo de Conta" maxlength="100" required>
-    <input name="titularConta" placeholder="Titular da Conta" maxlength="100" required>
-    
-    <label for="dataInicio">Data de Início de Atividades</label>
-    <input name="dataInicio" type="date" required>
-    
-    <input name="endereco" placeholder="Endereço completo" maxlength="100" required>
-    <input name="telefone" placeholder="Telefone" type="number" min="0" max="99999999999" required>
+    <br><br>
+    <label>Endereço</label><br>
+    <input name="rua" placeholder="Rua, nº e complemento" maxlength="255" required>
+    <input name="cep" placeholder="CEP" maxlength="25" required>
+    <input name="bairro" placeholder="Bairro" maxlength="100" required>
+    <input name="cidade" placeholder="Cidade" maxlength="50" required>
+    <input name="estado" placeholder="Estado" maxlength="50" required>
+    <input name="pais" placeholder="País" maxlength="50" required>
+    <br><br>
+    <input name="telefone" placeholder="Telefone" type="number" min="0" max="9999999999999" required>
     <input name="email" placeholder="Email" type="email" maxlength="100" required>
-    <input name="senha" placeholder="Senha" type="password" maxlength="100" required>
-    <input placeholder="Confirmar Senha" type="password" maxlength="100" required>
-
+    <br><br>
+    <input name="senha" placeholder="Senha" type="password" maxlength="255" required>
+    <br><br>
     <input type="checkbox" required>
     <label>Concordo com os Termos de Uso</label>
-
+    <br><br>
     <button type="submit">Enviar</button>
 </form>
 <br>
-<p>Lista de valores salvos</p>
+<p>Lista de valores salvos (ferramenta de teste)</p>
 <div id="valores-salvos">Aguardando resposta do banco de dados...</div>

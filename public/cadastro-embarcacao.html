@@ -1,4 +1,5 @@
-<form method="post" action="/api/incluir/Embarcacao">
+<h3>Cadastro de Embarcação (em breve)</h3>
+<form method="post" action="/api/cadastrar/embarcacao">
     <input name="nome" placeholder="Nome" maxlength="100" required>
     <input name="inscricao" placeholder="Inscrição" maxlength="20" required>
     
@@ -16,9 +17,9 @@
     <input name="detalhes" placeholder="Detalhes" maxlength="1000">
     <input name="roteiro" placeholder="Roteiro" maxlength="1000" required>
     
-    <input name="cnpjEmpresa" type="number" hidden readonly>
+    <input name="idEmpresa" hidden readonly>
     
-    <button type="submit">Enviar</button>
+    <button type="submit" disabled>Enviar</button>
 </form>
 <br>
 <p>Lista de valores salvos</p>

@@ -1,4 +1,4 @@
-var usuario;
+var usuario, idUsuario="";
 
 //Eventos que devem ocorrer assim que o site é carregado
 document.addEventListener("DOMContentLoaded", async function(){
@@ -6,9 +6,16 @@ document.addEventListener("DOMContentLoaded", async function(){
     usuario = await recuperarDados("/api/dados/usuario");
     console.log(usuario);
 
+    //obtendo o id do usuário conforme vínculo
+    if(usuario){
+        if(usuario.id_empresa){
+            idUsuario = usuario.id_empresa;
+        }
+    }
+
     //alterar menus com base no login, exibindo a página ao finalizar
     if(usuario){
-        document.getElementById("nome-usuario").innerHTML=`Entrou como ${usuario.razaoSocial}`;
+        document.getElementById("nome-usuario").innerHTML=`Entrou como ${usuario.razao}`;
         document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
             <a href="#cadastro-socio">Cadastro de Sócios</a>
             <a href="#cadastro-embarcacao">Cadastro de Embarcações</a>
@@ -44,15 +51,15 @@ function carregarPagina(pagina){
         //Parâmetros para páginas específicas
         switch(pagina){
             case "cadastro-empresa":
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Empresa");
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/empresabarco?filtro=join endemp on empresabarco.id_empresa=endemp.fk_empresa join bancoempbarco on empresabarco.id_empresa=bancoempbarco.fk_empbarco");
                 break;
             case "cadastro-socio":
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Socio?filtro=where cnpjEmpresa="+usuario.cnpj);
-                document.getElementsByName("cnpjEmpresa")[0].value = usuario.cnpj;
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Socio?filtro=where fk_empresa="+idUsuario);
+                document.getElementsByName("idEmpresa")[0].value = idUsuario;
                 break;
             case "cadastro-embarcacao":
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Embarcacao?filtro=where cnpjEmpresa="+usuario.cnpj);
-                document.getElementsByName("cnpjEmpresa")[0].value = usuario.cnpj;
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Embarcacao?filtro=where fk_empbarco="+idUsuario);
+                document.getElementsByName("idEmpresa")[0].value = idUsuario;
                 break;
             case "login":
                 let flash = await recuperarDados("/api/dados/flash");

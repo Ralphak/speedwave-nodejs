@@ -1,10 +1,16 @@
 <p id="msg-flash"></p>
 <form method="post" action="/api/login">
-    <input type="radio" name="vinculo" value="empresa" required>
-    <label for="vinculo">Empresa</label>
     <input type="radio" name="vinculo" value="cliente" disabled>
     <label for="vinculo">Cliente</label>
-    
+    <input type="radio" name="vinculo" value="proprietario" required>
+    <label for="vinculo">Proprietário</label>
+    <input type="radio" name="vinculo" value="vendedor" disabled>
+    <label for="vinculo">Vendedor</label>
+    <input type="radio" name="vinculo" value="socio-proprietario" disabled>
+    <label for="vinculo">Sócio (proprietário)</label>
+    <input type="radio" name="vinculo" value="socio-vendedor" disabled>
+    <label for="vinculo">Sócio (vendedor)</label>
+    <br>
     <input type="number" name="usuario" placeholder="CNPJ" required>
     <input type="password" name="senha" placeholder="Senha" required>
     <button type="submit">Entrar</button>

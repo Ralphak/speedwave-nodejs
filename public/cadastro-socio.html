@@ -1,4 +1,5 @@
-<form method="post" action="/api/incluir/Socio">
+<h3>Cadastro de Sócio (em breve)</h3>
+<form method="post" action="/api/cadastrar/Socio">
     <input name="nome" placeholder="Nome" maxlength="100" required>
     <input name="rg" placeholder="RG" type="number" min="0" max="999999999" required>
     <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
@@ -13,9 +14,9 @@
     <input type="checkbox" name="altoNivel">
     <label for="altoNivel">Alto Nível</label>
 
-    <input name="cnpjEmpresa" type="number" hidden readonly>
+    <input name="idEmpresa" hidden readonly>
 
-    <button type="submit">Enviar</button>
+    <button type="submit" disabled>Enviar</button>
 </form>
 <br>
 <p>Lista de valores salvos</p>
