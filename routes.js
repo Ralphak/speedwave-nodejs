@@ -6,6 +6,7 @@ const express = require("express"),
     
 var vinculoUsuario;
 
+
 //Busca todas as entradas de uma tabela, ou as definidas por ?colunas=x,y&filtro=where...
 router.get('/api/buscar/:tabela', (req, res)=>{
     if(!req.query.colunas){
@@ -68,35 +69,41 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             agencia : req.body.agencia, 
             conta : req.body.conta
         };
-    mysql.beginTransaction((err)=>{
+    mysql.getConnection((err, conn)=>{
         if (err) {
             res.send(err.stack);
             return;
         }
-        mysql.query("insert into empresabarco set ?", dadosEmpresa, (err, results)=>{
+        conn.beginTransaction((err)=>{
             if (err) {
-                mysql.rollback(()=>{res.send(err.stack);});
+                res.send(err.stack);
                 return;
             }
-            let idEmpresa = results.insertId;
-            dadosEndereco.fk_empresa = idEmpresa;
-            mysql.query("insert into endemp set ?", dadosEndereco, (err, results)=>{
+            conn.query("insert into empresabarco set ?", dadosEmpresa, (err, results)=>{
                 if (err) {
-                    mysql.rollback(()=>{res.send(err.stack);});
+                    conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
-                dadosPagamento.fk_empbarco = idEmpresa;
-                mysql.query("insert into bancoempbarco set ?", dadosPagamento, (err, results)=>{
+                let idEmpresa = results.insertId;
+                dadosEndereco.fk_empresa = idEmpresa;
+                conn.query("insert into endemp set ?", dadosEndereco, (err, results)=>{
                     if (err) {
-                        mysql.rollback(()=>{res.send(err.stack);});
+                        conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    mysql.commit((err)=>{
+                    dadosPagamento.fk_empbarco = idEmpresa;
+                    conn.query("insert into bancoempbarco set ?", dadosPagamento, (err, results)=>{
                         if (err) {
-                            mysql.rollback(()=>{res.send(err.stack);});
+                            conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
-                        res.redirect('/#sucesso');
+                        conn.commit((err)=>{
+                            if (err) {
+                                conn.rollback(()=>{res.send(err.stack);});
+                                return;
+                            }
+                            res.redirect('/#sucesso');
+                        });
                     });
                 });
             });
@@ -119,44 +126,51 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             cidade : req.body.cidade,
             fk_empbarco : req.body.fk_empbarco
         };
-    mysql.beginTransaction((err)=>{
+    mysql.getConnection((err, conn)=>{
         if (err) {
             res.send(err.stack);
             return;
         }
-        mysql.query("insert into embarcacao set ?", dadosEmbarcacao, (err, results)=>{
+        conn.beginTransaction((err)=>{
             if (err) {
-                mysql.rollback(()=>{res.send(err.stack);});
+                res.send(err.stack);
                 return;
             }
-            Object.keys(req.files).forEach((file)=>{
-                req.files[file].name = `${results.insertId}_${file}.${req.files[file].name.split(".").pop()}`;
-                req.files[file].mv(__dirname+"/public/img/embarcacoes/"+req.files[file].name);
-            });
-            let fotosEmbarcacao = {
-                proa : "/img/embarcacoes/"+req.files.proa.name, 
-                popa : "/img/embarcacoes/"+req.files.popa.name, 
-                través : "/img/embarcacoes/"+req.files.través.name, 
-                interior1 : "/img/embarcacoes/"+req.files.interior1.name, 
-                interior2 : "/img/embarcacoes/"+req.files.interior2.name, 
-                interior3 : "/img/embarcacoes/"+req.files.interior3.name,
-                fk_embar : results.insertId
-            };
-            mysql.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
+            conn.query("insert into embarcacao set ?", dadosEmbarcacao, (err, results)=>{
                 if (err) {
-                    mysql.rollback(()=>{res.send(err.stack);});
+                    conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
-                mysql.commit((err)=>{
+                Object.keys(req.files).forEach((file)=>{
+                    req.files[file].name = `${results.insertId}_${file}.${req.files[file].name.split(".").pop()}`;
+                    req.files[file].mv(__dirname+"/public/img/embarcacoes/"+req.files[file].name);
+                });
+                let fotosEmbarcacao = {
+                    proa : "/img/embarcacoes/"+req.files.proa.name, 
+                    popa : "/img/embarcacoes/"+req.files.popa.name, 
+                    través : "/img/embarcacoes/"+req.files.través.name, 
+                    interior1 : "/img/embarcacoes/"+req.files.interior1.name, 
+                    interior2 : "/img/embarcacoes/"+req.files.interior2.name, 
+                    interior3 : "/img/embarcacoes/"+req.files.interior3.name,
+                    fk_embar : results.insertId
+                };
+                conn.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
                     if (err) {
-                        mysql.rollback(()=>{res.send(err.stack);});
+                        conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    res.redirect('/#cadastro-embarcacao');
+                    conn.commit((err)=>{
+                        if (err) {
+                            conn.rollback(()=>{res.send(err.stack);});
+                            return;
+                        }
+                        res.redirect('/#cadastro-embarcacao');
+                    });
                 });
             });
         });
     });
+    
 });
 
 //Requisição de login.
