@@ -132,9 +132,9 @@ async function gerarTabela (url){
     dados.forEach(dado => {
         tabela += "<tr>";
         Object.keys(dado).map(valor => {
-            let extensao = `${dado[valor]}`.split(".").pop();
-            if(extensao=="jpg" || extensao=="png"){
-                tabela += `<td><img src=${dado[valor]}></td>`;
+            let extensao = `${dado[valor]}`.split(".");
+            if(extensao[1]=="image/jpeg" || extensao[1]=="image/png"){
+                tabela += `<td><img src="data:${extensao[1]};base64, ${extensao[0]}"></td>`;
             } else{
                 tabela += `<td>${dado[valor]}</td>`;
             }

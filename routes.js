@@ -125,6 +125,13 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             area_nav : req.body.area_nav,
             cidade : req.body.cidade,
             fk_empbarco : req.body.fk_empbarco
+        }, fotosEmbarcacao = {
+            proa : req.files.proa.data.toString("base64")+'.'+req.files.proa.mimetype, 
+            popa : req.files.popa.data.toString("base64")+'.'+req.files.popa.mimetype, 
+            través : req.files.través.data.toString("base64")+'.'+req.files.través.mimetype, 
+            interior1 : req.files.interior1.data.toString("base64")+'.'+req.files.interior1.mimetype, 
+            interior2 : req.files.interior2.data.toString("base64")+'.'+req.files.interior2.mimetype, 
+            interior3 : req.files.interior3.data.toString("base64")+'.'+req.files.interior3.mimetype
         };
     mysql.getConnection((err, conn)=>{
         if (err) {
@@ -141,19 +148,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
-                Object.keys(req.files).forEach((file)=>{
-                    req.files[file].name = `${results.insertId}_${file}.${req.files[file].name.split(".").pop()}`;
-                    req.files[file].mv(__dirname+"/public/img/embarcacoes/"+req.files[file].name);
-                });
-                let fotosEmbarcacao = {
-                    proa : "/img/embarcacoes/"+req.files.proa.name, 
-                    popa : "/img/embarcacoes/"+req.files.popa.name, 
-                    través : "/img/embarcacoes/"+req.files.través.name, 
-                    interior1 : "/img/embarcacoes/"+req.files.interior1.name, 
-                    interior2 : "/img/embarcacoes/"+req.files.interior2.name, 
-                    interior3 : "/img/embarcacoes/"+req.files.interior3.name,
-                    fk_embar : results.insertId
-                };
+                fotosEmbarcacao.fk_embar = results.insertId;
                 conn.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
                     if (err) {
                         conn.rollback(()=>{res.send(err.stack);});
@@ -170,7 +165,6 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             });
         });
     });
-    
 });
 
 //Requisição de login.
