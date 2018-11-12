@@ -2,26 +2,21 @@
 require("dotenv").config({path:"variables.env"});
 
 const
-    //Importando os módulos npm
-    bodyParser = require("body-parser"),
     express = require("express"),
-    expressSession = require("express-session"),
-    passport = require("passport"),
-
-    //Variáveis locais
     app = express(),
-    port = process.env.PORT || 8000,
-    routes = require("./routes.js");
+    passport = require("passport"),
+    port = process.env.PORT || 8000;
 
 
 //Inicializações
 app.use(express.static(__dirname + "/public"));
-app.use(bodyParser.urlencoded({extended:false}));
-app.use(expressSession({secret: 'minhaChaveSecreta', resave: false, saveUninitialized: true}));
+app.use(require("body-parser").urlencoded({extended:false}));
+app.use(require("express-session")({secret: 'equipeUVA', resave: false, saveUninitialized: true}));
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(require("flash")());
-app.use(routes);
+app.use(require("express-fileupload")());
+app.use(require("./routes.js"));
 
 //certificado SSL
 /*var credentials = {

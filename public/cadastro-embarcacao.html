@@ -1,26 +1,51 @@
-<h3>Cadastro de Embarcação (em breve)</h3>
-<form method="post" action="/api/cadastrar/embarcacao">
-    <input name="nome" placeholder="Nome" maxlength="100" required>
-    <input name="inscricao" placeholder="Inscrição" maxlength="20" required>
-    
-    <label for="dataInscricao">Data de Inscrição</label>
-    <input name="dataInscricao" type="date" required>
+<h3>Cadastro de Embarcação</h3>
+<form method="post" action="/api/cadastrar/embarcacao" enctype="multipart/form-data">
+    <input name="nome" placeholder="Nome" maxlength="255" required>
+    <label for="categoria">Categoria</label>
+    <select name="categoria">
+        <option value="barco">Barco</option>
+        <option value="jetski">Jet Ski</option>
+        <option value="lancha">Lancha</option>
+    </select>
+    <input name="numero" placeholder="Nº de Inscrição" maxlength="25" required>
+    <br><br>
+    <label for="data">Data de Inscrição</label>
+    <input name="data" type="date" required>
+    <br>
     <label for="validade">Validade do Documento</label>
     <input name="validade" type="date" required>
-    
-    <input name="passageirosTotal" placeholder="Total de passageiros" type="number" min="0" max="9999" required>
-    <input name="tripulantes" placeholder="Total de tripulantes" type="number" min="0" max="9999" required>
+    <br><br>
+    <input name="capacidade" placeholder="Passageiros" type="number" min="0" max="99999" required>
+    <input name="qtd_tripulantes" placeholder="Tripulantes" type="number" min="0" max="99999" required>
     <input name="atividade" placeholder="Atividade/Serviço" maxlength="100" required>
-    <input name="areaNavegacao" placeholder="Área de Navegação" maxlength="100" required>
-    <input name="cidade" placeholder="Cidade do serviço" maxlength="100" required>
-    <input name="caracteristicas" placeholder="Características" maxlength="1000" required>
-    <input name="detalhes" placeholder="Detalhes" maxlength="1000">
-    <input name="roteiro" placeholder="Roteiro" maxlength="1000" required>
+    <input name="area_nav" placeholder="Área de Navegação" maxlength="100" required>
+    <input name="cidade" placeholder="Cidade do serviço" maxlength="50" required>
+    <br><br>
+    <label><b>Fotos da Embarcação</b></label>
+    <br>
+    <label for="proa">Proa</label>
+    <input name="proa" type="file" required>
+    <br>
+    <label for="popa">Popa</label>
+    <input name="popa" type="file" required>
+    <br>
+    <label for="través">Través</label>
+    <input name="través" type="file" required>
+    <br>
+    <label for="interior1">Interior 1</label>
+    <input name="interior1" type="file" required>
+    <br>
+    <label for="interior2">Interior 2</label>
+    <input name="interior2" type="file" required>
+    <br>
+    <label for="interior3">Interior 3</label>
+    <input name="interior3" type="file" required>
+    <br><br>
     
-    <input name="idEmpresa" hidden readonly>
+    <input name="fk_empbarco" hidden readonly>
     
-    <button type="submit" disabled>Enviar</button>
+    <button type="submit">Enviar</button>
 </form>
 <br>
-<p>Lista de valores salvos</p>
+<p>Lista de valores salvos (ferramenta de teste)</p>
 <div id="valores-salvos">Aguardando resposta do banco de dados...</div>

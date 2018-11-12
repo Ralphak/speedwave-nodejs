@@ -1,23 +1,24 @@
-<h3>Cadastro de Sócio (em breve)</h3>
-<form method="post" action="/api/cadastrar/Socio">
-    <input name="nome" placeholder="Nome" maxlength="100" required>
-    <input name="rg" placeholder="RG" type="number" min="0" max="999999999" required>
+<h3>Cadastro de Sócio</h3>
+<form method="post" id="form-socio" action="">
+    <input name="nome" placeholder="Nome" maxlength="255" required>
     <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
-    
-    <label for="dataNascimento">Data de Nascimento</label>
-    <input name="dataNascimento" type="date" required>
-    
-    <input name="endereco" placeholder="Endereço completo" maxlength="100" required>
-    <input name="senha" placeholder="Senha" type="password" maxlength="100" required>
-    <input placeholder="Confirmar Senha" type="password" maxlength="100" required>
+    <br><br>
+    <label for="data_nasc">Data de Nascimento</label>
+    <input name="data_nasc" type="date" required>
+    <br><br>
+    <input name="rua" placeholder="Rua, nº e complemento" maxlength="255" required>
+    <input name="cep" placeholder="CEP" maxlength="25" required>
+    <input name="bairro" placeholder="Bairro" maxlength="50" required>
+    <input name="cidade" placeholder="Cidade" maxlength="50" required>
+    <input name="estado" placeholder="Estado" maxlength="50" required>
+    <input name="pais" placeholder="País" maxlength="50" required>
+    <br><br>
+    <input name="senha" placeholder="Senha" type="password" maxlength="255" required>
 
-    <input type="checkbox" name="altoNivel">
-    <label for="altoNivel">Alto Nível</label>
+    <input id="id_empresa" hidden readonly>
 
-    <input name="idEmpresa" hidden readonly>
-
-    <button type="submit" disabled>Enviar</button>
+    <button type="submit">Enviar</button>
 </form>
 <br>
-<p>Lista de valores salvos</p>
+<p>Lista de valores salvos (ferramenta de teste)</p>
 <div id="valores-salvos">Aguardando resposta do banco de dados...</div>

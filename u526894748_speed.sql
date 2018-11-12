@@ -1,3 +1,4 @@
+-- Cria um banco local para testes
 drop database if exists teste_speed;
 create database teste_speed;
 use teste_speed;
@@ -7,7 +8,7 @@ use teste_speed;
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 11/11/2018 às 13:49
+-- Tempo de geração: 12/11/2018 às 01:49
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.1.22
 
@@ -98,7 +99,7 @@ CREATE TABLE `embarcacao` (
   `id_embarcacao` int(11) NOT NULL,
   `nome` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `categoria` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
-  `numero` int(50) NOT NULL,
+  `numero` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `data` date NOT NULL,
   `validade` date NOT NULL,
   `capacidade` int(5) NOT NULL,
@@ -137,7 +138,6 @@ CREATE TABLE `endemp` (
   `id` int(11) NOT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `numero` int(10) DEFAULT NULL,
   `cep` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL,
   `bairro` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -155,7 +155,6 @@ CREATE TABLE `endereco` (
   `id` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `numero` int(10) DEFAULT NULL,
   `cep` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -173,7 +172,6 @@ CREATE TABLE `endvendemp` (
   `id_end` int(11) NOT NULL,
   `fk_vendemp` int(11) NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `numero` int(10) DEFAULT NULL,
   `bairro` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -230,13 +228,14 @@ CREATE TABLE `sociovendemp` (
   `fk_vendemp` int(11) NOT NULL,
   `nome` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cpf` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `datanasc` date DEFAULT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `data_nasc` date DEFAULT NULL,
+  `cep` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

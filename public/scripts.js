@@ -54,12 +54,22 @@ function carregarPagina(pagina){
                 document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/empresabarco?filtro=join endemp on empresabarco.id_empresa=endemp.fk_empresa join bancoempbarco on empresabarco.id_empresa=bancoempbarco.fk_empbarco");
                 break;
             case "cadastro-socio":
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Socio?filtro=where fk_empresa="+idUsuario);
-                document.getElementsByName("idEmpresa")[0].value = idUsuario;
+                let tabela, chaveEstrangeira;
+                if(usuario.vinculo=="proprietario"){
+                    tabela="socio";
+                    chaveEstrangeira="fk_empresa";
+                } /*else if(usuario.vinculo=="vendedor"){
+                    tabela="sociovendemp";
+                    chaveEstrangeira="fk_vendemp";
+                }*/
+                document.getElementById("form-socio").action = "/api/incluir/"+tabela;
+                document.getElementById("id_empresa").value = idUsuario;
+                document.getElementById("id_empresa").name = chaveEstrangeira;
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela(`/api/buscar/socio?filtro=where ${chaveEstrangeira}=${idUsuario}`);
                 break;
             case "cadastro-embarcacao":
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/Embarcacao?filtro=where fk_empbarco="+idUsuario);
-                document.getElementsByName("idEmpresa")[0].value = idUsuario;
+                document.getElementsByName("fk_empbarco")[0].value = idUsuario;
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/embarcacao?filtro=join fotoembar on embarcacao.id_embarcacao=fotoembar.fk_embar where fk_empbarco="+idUsuario);
                 break;
             case "login":
                 let flash = await recuperarDados("/api/dados/flash");
@@ -122,7 +132,12 @@ async function gerarTabela (url){
     dados.forEach(dado => {
         tabela += "<tr>";
         Object.keys(dado).map(valor => {
-            tabela += `<td>${dado[valor]}</td>`;
+            let extensao = `${dado[valor]}`.split(".").pop();
+            if(extensao=="jpg" || extensao=="png"){
+                tabela += `<td><img src=${dado[valor]}></td>`;
+            } else{
+                tabela += `<td>${dado[valor]}</td>`;
+            }
         });
         tabela += "</tr>";
     });

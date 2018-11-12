@@ -4,6 +4,7 @@ const express = require("express"),
     loginAPI = require("./login-api.js"),
     crypto = require("crypto");
     
+var vinculoUsuario;
 
 //Busca todas as entradas de uma tabela, ou as definidas por ?colunas=x,y&filtro=where...
 router.get('/api/buscar/:tabela', (req, res)=>{
@@ -77,7 +78,6 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
                 mysql.rollback(()=>{res.send(err.stack);});
                 return;
             }
-            console.log(results);
             let idEmpresa = results.insertId;
             dadosEndereco.fk_empresa = idEmpresa;
             mysql.query("insert into endemp set ?", dadosEndereco, (err, results)=>{
@@ -104,6 +104,61 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
     });
 });
 
+//Inclui um cadastro de embarcação no banco de dados.
+router.post('/api/cadastrar/embarcacao', (req, res)=>{
+    let dadosEmbarcacao = {
+            nome : req.body.nome, 
+            categoria : req.body.categoria, 
+            numero : req.body.numero, 
+            data : req.body.data, 
+            validade : req.body.validade, 
+            capacidade : req.body.capacidade, 
+            qtd_tripulantes : req.body.qtd_tripulantes, 
+            atividade : req.body.atividade,
+            area_nav : req.body.area_nav,
+            cidade : req.body.cidade,
+            fk_empbarco : req.body.fk_empbarco
+        };
+    mysql.beginTransaction((err)=>{
+        if (err) {
+            res.send(err.stack);
+            return;
+        }
+        mysql.query("insert into embarcacao set ?", dadosEmbarcacao, (err, results)=>{
+            if (err) {
+                mysql.rollback(()=>{res.send(err.stack);});
+                return;
+            }
+            Object.keys(req.files).forEach((file)=>{
+                req.files[file].name = `${results.insertId}_${file}.${req.files[file].name.split(".").pop()}`;
+                req.files[file].mv(__dirname+"/public/img/embarcacoes/"+req.files[file].name);
+            });
+            let fotosEmbarcacao = {
+                proa : "/img/embarcacoes/"+req.files.proa.name, 
+                popa : "/img/embarcacoes/"+req.files.popa.name, 
+                través : "/img/embarcacoes/"+req.files.través.name, 
+                interior1 : "/img/embarcacoes/"+req.files.interior1.name, 
+                interior2 : "/img/embarcacoes/"+req.files.interior2.name, 
+                interior3 : "/img/embarcacoes/"+req.files.interior3.name,
+                fk_embar : results.insertId
+            };
+            mysql.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
+                if (err) {
+                    mysql.rollback(()=>{res.send(err.stack);});
+                    return;
+                }
+                mysql.commit((err)=>{
+                    if (err) {
+                        mysql.rollback(()=>{res.send(err.stack);});
+                        return;
+                    }
+                    res.redirect('/#cadastro-embarcacao');
+                });
+            });
+        });
+    });
+});
+
 //Requisição de login.
 router.post('/api/login', (req, res)=>{
     let tabela, chave;
@@ -116,6 +171,7 @@ router.post('/api/login', (req, res)=>{
             res.send("Opção de vínculo não atribuída ao método de login.");
             return;
     }
+    vinculoUsuario = req.body.vinculo;
     let login = new loginAPI(tabela, chave);
     login.passport.authenticate('local', {
         failureFlash : true,
@@ -135,6 +191,7 @@ router.get('/api/dados/:dados', (req, res)=>{
     if(req.params.dados=="usuario" && req.user){
         let usuario = req.user;
         delete usuario['senha'];
+        usuario.vinculo = vinculoUsuario;
         res.json(usuario);
     } else if(req.params.dados=="flash" && res.locals.flash.length > 0){
         res.json(res.locals.flash.pop());
