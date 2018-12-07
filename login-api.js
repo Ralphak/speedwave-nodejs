@@ -12,7 +12,7 @@ function loginAPI (tabela, chave){
   });
   
   passport.deserializeUser(function(id, done) {
-    mysql.query(`select * from ${tabela} where ${chave}=${id} limit 1`, (err, user)=>{
+    mysql.query(`select * from ${tabela} where ${chave}="${id}" limit 1`, (err, user)=>{
       user = user.pop();
       done(err, user);
     });
@@ -24,7 +24,7 @@ function loginAPI (tabela, chave){
     passReqToCallback : true
   }, function(req, username, password, done) {
     // Verifica se o usuário existe ou não
-    mysql.query(`select ${chave}, senha from ${tabela} where ${chave}=${username} limit 1`, (err, user)=>{
+    mysql.query(`select ${chave}, senha from ${tabela} where ${chave}="${username}" limit 1`, (err, user)=>{
       // Em caso de erro, retorne usando o método done
       if (err){
         return done(err);
