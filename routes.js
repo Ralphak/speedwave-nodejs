@@ -43,6 +43,16 @@ router.post('/api/incluir/:tabela', (req, res)=>{
 //Inclui um cadastro de empresa no banco de dados.
 router.post('/api/cadastrar/empresa', (req, res)=>{
     req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    let tabelaEmpresa, tabelaEndereco, tabelaBanco;
+    if(req.body.vinculo=="proprietario"){
+        tabelaEmpresa="empresabarco";
+        tabelaEndereco="endemp";
+        tabelaBanco="bancoempbarco";
+    } else{
+        tabelaEmpresa="vendemp";
+        tabelaEndereco="endvendemp";
+        tabelaBanco="bancovendemp";
+    }
     let dadosEmpresa = {
             razao : req.body.razao, 
             cnpj : req.body.cnpj, 
@@ -51,10 +61,11 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             data_inicio : req.body.data_inicio, 
             telefone : req.body.telefone, 
             email : req.body.email, 
-            senha : req.body.senha
+            senha : req.body.senha,
+            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype, 
+            documento2 : req.files.documento2.data.toString("base64")+'.'+req.files.documento2.mimetype
         }, 
         dadosEndereco = {
-            fk_empresa : '',
             rua : req.body.rua, 
             cep : req.body.cep, 
             bairro : req.body.bairro, 
@@ -63,7 +74,6 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             pais : req.body.pais
         }, 
         dadosPagamento = {
-            fk_empbarco : '',
             cpf : req.body.cpf, 
             banco : req.body.banco, 
             agencia : req.body.agencia, 
@@ -79,20 +89,28 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
                 res.send(err.stack);
                 return;
             }
-            conn.query("insert into empresabarco set ?", dadosEmpresa, (err, results)=>{
+            conn.query(`insert into ${tabelaEmpresa} set ?`, dadosEmpresa, (err, results)=>{
                 if (err) {
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
                 let idEmpresa = results.insertId;
-                dadosEndereco.fk_empresa = idEmpresa;
-                conn.query("insert into endemp set ?", dadosEndereco, (err, results)=>{
+                if(req.body.vinculo=="proprietario"){
+                    dadosEndereco.fk_empresa = idEmpresa;
+                } else{
+                    dadosEndereco.fk_vendemp = idEmpresa;
+                }
+                conn.query(`insert into ${tabelaEndereco} set ?`, dadosEndereco, (err, results)=>{
                     if (err) {
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    dadosPagamento.fk_empbarco = idEmpresa;
-                    conn.query("insert into bancoempbarco set ?", dadosPagamento, (err, results)=>{
+                    if(req.body.vinculo=="proprietario"){
+                        dadosPagamento.fk_empresa = idEmpresa;
+                    } else{
+                        dadosPagamento.fk_vendemp = idEmpresa;
+                    }
+                    conn.query(`insert into ${tabelaBanco} set ?`, dadosPagamento, (err, results)=>{
                         if (err) {
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
@@ -124,7 +142,10 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             atividade : req.body.atividade,
             area_nav : req.body.area_nav,
             cidade : req.body.cidade,
-            fk_empbarco : req.body.fk_empbarco
+            fk_empbarco : req.body.fk_empbarco,
+            valor: req.body.valor,
+            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype, 
+            documento2 : req.files.documento2.data.toString("base64")+'.'+req.files.documento2.mimetype
         }, fotosEmbarcacao = {
             proa : req.files.proa.data.toString("base64")+'.'+req.files.proa.mimetype, 
             popa : req.files.popa.data.toString("base64")+'.'+req.files.popa.mimetype, 
@@ -173,6 +194,10 @@ router.post('/api/login', (req, res)=>{
     switch(req.body.vinculo){
         case "proprietario":
             tabela="empresabarco";
+            chave="cnpj";
+            break;
+        case "vendedor":
+            tabela="vendemp";
             chave="cnpj";
             break;
         default:

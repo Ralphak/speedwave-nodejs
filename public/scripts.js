@@ -8,19 +8,33 @@ document.addEventListener("DOMContentLoaded", async function(){
 
     //obtendo o id do usuário conforme vínculo
     if(usuario){
-        if(usuario.id_empresa){
-            idUsuario = usuario.id_empresa;
+        switch(usuario.vinculo){
+            case "proprietario":
+                idUsuario = usuario.id_empresa;
+                break;
+            case "vendedor":
+                idUsuario = usuario.id_vendemp;
+                break;
         }
     }
 
     //alterar menus com base no login, exibindo a página ao finalizar
     if(usuario){
         document.getElementById("nome-usuario").innerHTML=`Entrou como ${usuario.razao}`;
-        document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
-            <a href="#cadastro-socio">Cadastro de Sócios</a>
-            <a href="#cadastro-embarcacao">Cadastro de Embarcações</a>
-            <a href="/api/logout">Sair</a>
-        `);
+        switch(usuario.vinculo){
+            case "proprietario":
+                document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
+                    <a href="#cadastro-socio">Cadastro de Sócios</a>
+                    <a href="#cadastro-embarcacao">Cadastro de Embarcações</a>
+                    `);
+                break;
+            case "vendedor":
+                document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
+                    <a href="#cadastro-socio">Cadastro de Sócios</a>
+                    `);
+                break;
+        }
+        document.getElementById("div-menu").insertAdjacentHTML("beforeend", `<a href="/api/logout">Sair</a>`);
     } else{
         document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
             <a href="#cadastro-empresa">Cadastro de Empresa</a>
@@ -51,26 +65,40 @@ function carregarPagina(pagina){
         //Parâmetros para páginas específicas
         switch(pagina){
             case "cadastro-empresa":
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/empresabarco?filtro=join endemp on empresabarco.id_empresa=endemp.fk_empresa join bancoempbarco on empresabarco.id_empresa=bancoempbarco.fk_empbarco");
+                document.getElementById("valores-salvos").innerHTML = "Proprietários:<br>" + await gerarTabela("/api/buscar/empresabarco?filtro=join endemp on empresabarco.id_empresa=endemp.fk_empresa join bancoempbarco on empresabarco.id_empresa=bancoempbarco.fk_empresa");
+                document.getElementById("valores-salvos").insertAdjacentHTML("beforeend", "<br>Vendedores:<br>" + await gerarTabela("/api/buscar/vendemp?filtro=join endvendemp on vendemp.id_vendemp=endvendemp.fk_vendemp join bancovendemp on vendemp.id_vendemp=bancovendemp.fk_vendemp"));
                 break;
+
             case "cadastro-socio":
+                document.getElementById("caixaAltoAcesso").addEventListener("click", (e)=>{
+                    let valorCaixa = document.getElementById("altoAcesso");
+                    if(e.target.checked){
+                        valorCaixa.value = 1;
+                    } else{
+                        valorCaixa.value = 0;
+                    }
+                });
+
                 let tabela, chaveEstrangeira;
                 if(usuario.vinculo=="proprietario"){
                     tabela="socio";
                     chaveEstrangeira="fk_empresa";
-                } /*else if(usuario.vinculo=="vendedor"){
+                } else if(usuario.vinculo=="vendedor"){
                     tabela="sociovendemp";
                     chaveEstrangeira="fk_vendemp";
-                }*/
+                }
                 document.getElementById("form-socio").action = "/api/incluir/"+tabela;
                 document.getElementById("id_empresa").value = idUsuario;
                 document.getElementById("id_empresa").name = chaveEstrangeira;
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela(`/api/buscar/socio?filtro=where ${chaveEstrangeira}=${idUsuario}`);
+                document.getElementById("valores-salvos").innerHTML = await gerarTabela(`/api/buscar/${tabela}?filtro=where ${chaveEstrangeira}=${idUsuario}`);
+
                 break;
+
             case "cadastro-embarcacao":
                 document.getElementsByName("fk_empbarco")[0].value = idUsuario;
                 document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/embarcacao?filtro=join fotoembar on embarcacao.id_embarcacao=fotoembar.fk_embar where fk_empbarco="+idUsuario);
                 break;
+
             case "login":
                 let flash = await recuperarDados("/api/dados/flash");
                 if(flash){
@@ -86,11 +114,16 @@ function permitirAcesso(pagina){
     switch(pagina){
         //Permissões para usuário logado
         case "#cadastro-socio":
-        case "#cadastro-embarcacao":
             if(!usuario){
                 return false;
             }
             break;
+        case "#cadastro-embarcacao":
+            if(!usuario || usuario.vinculo=="vendedor"){
+                return false;
+            }
+            break;
+
         //Permissões para visitante
         case "#cadastro-empresa":
         case "#login":
@@ -134,7 +167,7 @@ async function gerarTabela (url){
         Object.keys(dado).map(valor => {
             let extensao = `${dado[valor]}`.split(".");
             if(extensao[1]=="image/jpeg" || extensao[1]=="image/png"){
-                tabela += `<td><img src="data:${extensao[1]};base64, ${extensao[0]}"></td>`;
+                tabela += `<td><img class="img-anexo" src="data:${extensao[1]};base64, ${extensao[0]}"></td>`;
             } else{
                 tabela += `<td>${dado[valor]}</td>`;
             }

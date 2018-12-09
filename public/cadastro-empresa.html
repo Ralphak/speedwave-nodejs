@@ -1,13 +1,12 @@
 <h3>Cadastro de Empresa</h3>
 
-<!-- TODO: Adicionar o vínculo ao formulário -->
-<input type="radio" name="vinculo" value="proprietario" checked>
-<label for="vinculo">Proprietário de Embarcação</label>
-<br>
-<input type="radio" name="vinculo" value="vendedor" disabled>
-<label for="vinculo">Agência de Turismo ou Vendedor Autônomo</label>
-
-<form method="post" action="/api/cadastrar/empresa">
+<form method="post" action="/api/cadastrar/empresa" enctype="multipart/form-data">
+    <input type="radio" name="vinculo" value="proprietario" checked>
+    <label for="vinculo">Proprietário de Embarcação</label>
+    <br>
+    <input type="radio" name="vinculo" value="vendedor">
+    <label for="vinculo">Agência de Turismo ou Vendedor Autônomo</label>
+    <br><br>
     <input name="razao" placeholder="Razão Social" maxlength="255" required>
     <input name="cnpj" placeholder="CNPJ" type="number" min="0" max="99999999999999" required>
     <input name="info" placeholder="Informações (opcional)" maxlength="255">
@@ -38,9 +37,9 @@
     
     <label><b>Anexar Documentação</b></label>
     <br>
-    <input name="documento1" type="file">
+    <input name="documento1" type="file" required>
     <br>
-    <input name="documento2" type="file">
+    <input name="documento2" type="file" required>
     <br><br>
     
     <input type="checkbox" required>
