@@ -3,21 +3,44 @@
 <head>
     <title>Speed Wave</title>
     <link rel="icon" href="favicon.ico">
-    <link rel="stylesheet" href="style.css">
-    <script src="jquery-3.3.1.min.js"></script>
+    <link rel="stylesheet" href="plugins/bootstrap.min.css">
+    <link rel="stylesheet" href="plugins/floating-labels.css">
+    <link rel="stylesheet" href="styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body hidden>
-    <div id="div-menu">
-        <b>Speed Wave</b><br><span id="nome-usuario"></span><br>
-        <a href="">Página Inicial</a>
-        <a href="#quem-somos">Quem Somos</a>
-    </div>
-    <hr><br>
+    <nav class="navbar navbar-expand-sm navbar-dark bg-darkblue">
+        <a class="navbar-brand" href="#"><img src="img/speedwave.png" alt="Speed Wave"></a>
+
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarsExample05">
+            <ul class="navbar-nav mr-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="#quem-somos">Quem Somos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link disabled">Galeria</a>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto" id="menu-usuario">
+                <li class="nav-item dropdown" hidden>
+                    <a class="nav-link dropdown-toggle" href="" id="dropdown05" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown05">
+                    </div>
+                </li>
+            </ul>
+        </div>
+    </nav>
     <div id="div-content"></div>
 </body>
 
 <!-- Carregar scripts aqui! -->
+<script src="plugins/jquery-3.3.1.min.js"></script>
+<script src="plugins/bootstrap.bundle.min.js"></script>
 <script src="scripts.js"></script>
 
 </html>

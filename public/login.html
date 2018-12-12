@@ -1,17 +1,29 @@
-<p id="msg-flash"></p>
-<form method="post" action="/api/login">
-    <input type="radio" name="vinculo" value="cliente" disabled>
-    <label for="vinculo">Cliente</label>
-    <input type="radio" name="vinculo" value="proprietario" required checked>
-    <label for="vinculo">Proprietário</label>
-    <input type="radio" name="vinculo" value="vendedor">
-    <label for="vinculo">Vendedor</label>
-    <input type="radio" name="vinculo" value="socio-proprietario" disabled>
-    <label for="vinculo">Sócio (proprietário)</label>
-    <input type="radio" name="vinculo" value="socio-vendedor" disabled>
-    <label for="vinculo">Sócio (vendedor)</label>
+<form class="form-login center" method="post" action="/api/login">
+    <img class="img-logo" src="img/logo.png">
+    <h2>Acesso Restrito</h2>
+    
+    <select name="vinculo">
+        <option value="proprietario">Proprietário</option>
+        <option value="vendedor">Vendedor</option>
+        <option disabled value="cliente">Cliente</option>
+        <option disabled value="socio-proprietario">Sócio (proprietário)</option>
+        <option disabled value="socio-vendedor">Sócio (vendedor)</option>
+    </select>
+    <br><br>
+    
+    <div class="form-group">
+        <input type="number" name="usuario" id="usuario" class="form-control" required>
+        <label class="form-control-placeholder" for="usuario">CNPJ</label>
+    </div>
+    <div class="form-group">
+        <input type="password" name="senha" id="senha" class="form-control" required>
+        <label class="form-control-placeholder" for="senha">Senha</label>
+    </div>
+    
+    <p id="msg-flash"></p>
+    <button class="btn btn-primary btn-lg center" type="submit">Entrar</button>
     <br>
-    <input type="number" name="usuario" placeholder="CNPJ" required>
-    <input type="password" name="senha" placeholder="Senha" required>
-    <button type="submit">Entrar</button>
+
+    <a href="#cadastro-empresa">Cadastre a sua empresa</a>
+
 </form>

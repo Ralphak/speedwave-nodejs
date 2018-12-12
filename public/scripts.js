@@ -20,25 +20,27 @@ document.addEventListener("DOMContentLoaded", async function(){
 
     //alterar menus com base no login, exibindo a página ao finalizar
     if(usuario){
-        document.getElementById("nome-usuario").innerHTML=`Entrou como ${usuario.razao}`;
+        document.querySelector(".dropdown").removeAttribute("hidden");
+        document.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
         switch(usuario.vinculo){
             case "proprietario":
-                document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
-                    <a href="#cadastro-socio">Cadastro de Sócios</a>
-                    <a href="#cadastro-embarcacao">Cadastro de Embarcações</a>
+                document.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                    <a class="dropdown-item" href="#cadastro-socio">Cadastro de Sócios</a>
+                    <a class="dropdown-item" href="#cadastro-embarcacao">Cadastro de Embarcações</a>
                     `);
                 break;
             case "vendedor":
-                document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
-                    <a href="#cadastro-socio">Cadastro de Sócios</a>
+                document.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                    <a class="dropdown-item" href="#cadastro-socio">Cadastro de Sócios</a>
                     `);
                 break;
         }
-        document.getElementById("div-menu").insertAdjacentHTML("beforeend", `<a href="/api/logout">Sair</a>`);
+        document.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
     } else{
-        document.getElementById("div-menu").insertAdjacentHTML("beforeend", `
-            <a href="#cadastro-empresa">Cadastro de Empresa</a>
-            <a href="#login">Login</a>
+        document.getElementById("menu-usuario").insertAdjacentHTML("beforeend", `
+            <li class="nav-item">
+                <a class="nav-link" href="#login">Login</a>
+            </li>
         `);
     }
     document.body.removeAttribute("hidden");
