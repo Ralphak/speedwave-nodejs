@@ -1,5 +1,5 @@
 <h3>Cadastro de Sócio</h3>
-<form method="post" id="form-socio" action="">
+<form method="post" id="form-socio" action=""> <!-- O action é definido via script -->
     <input name="nome" placeholder="Nome" maxlength="255" required>
     <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
     <br><br>
@@ -15,14 +15,13 @@
     <br><br>
     <input name="senha" placeholder="Senha" type="password" maxlength="255" required>
     <br><br>
-    <input type="checkbox" id="caixaAltoAcesso">
-    <label for="caixaAltoAcesso">Alto Acesso</a></label>
-    <input id="altoAcesso" name="altoAcesso" type="number" hidden readonly value=0>
+    <input type="checkbox" name="altoAcesso" value=1>
+    <label for="altoAcesso">Alto Acesso</a></label>
     <br><br>
 
     <input id="id_empresa" hidden readonly>
 
-    <button type="submit">Enviar</button>
+    <button class="btn btn-primary" type="submit">Enviar</button>
 </form>
 <br>
 <!-- <p>Lista de valores salvos (ferramenta de teste)</p>

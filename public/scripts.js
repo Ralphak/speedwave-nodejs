@@ -1,4 +1,4 @@
-var usuario, idUsuario="";
+var usuario, idUsuario="", linkAtivo;
 
 //Eventos que devem ocorrer assim que o site é carregado
 document.addEventListener("DOMContentLoaded", async function(){
@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", async function(){
     }
     document.body.removeAttribute("hidden");
 
-    //Troca de página segundo o #
+    //Carrega a página citada no #
     carregarPagina(location.hash);
 });
 
@@ -56,6 +56,7 @@ window.onhashchange = function(){
 
 //Função de carregamento de página
 function carregarPagina(pagina){
+    //Verifica se o usuário tem permissão
     if(pagina=="" || !permitirAcesso(pagina)){
         pagina = "pagina-inicial";
     }
@@ -63,24 +64,14 @@ function carregarPagina(pagina){
         pagina = pagina.replace("#", "");
     }
 
+    //Carrega a página, adicionando parâmetros para páginas específicas
     $("#div-content").load(`${pagina}.html`, async()=>{
-        //Parâmetros para páginas específicas
         switch(pagina){
             case "cadastro-empresa":
-                document.getElementById("valores-salvos").innerHTML = "Proprietários:<br>" + await gerarTabela("/api/buscar/empresabarco?filtro=join endemp on empresabarco.id_empresa=endemp.fk_empresa join bancoempbarco on empresabarco.id_empresa=bancoempbarco.fk_empresa");
-                document.getElementById("valores-salvos").insertAdjacentHTML("beforeend", "<br>Vendedores:<br>" + await gerarTabela("/api/buscar/vendemp?filtro=join endvendemp on vendemp.id_vendemp=endvendemp.fk_vendemp join bancovendemp on vendemp.id_vendemp=bancovendemp.fk_vendemp"));
+                //document.getElementById("valores-salvos").innerHTML = "Proprietários:<br>" + await gerarTabela("/api/buscar/empresabarco?filtro=join endemp on empresabarco.id_empresa=endemp.fk_empresa join bancoempbarco on empresabarco.id_empresa=bancoempbarco.fk_empresa");
+                //document.getElementById("valores-salvos").insertAdjacentHTML("beforeend", "<br>Vendedores:<br>" + await gerarTabela("/api/buscar/vendemp?filtro=join endvendemp on vendemp.id_vendemp=endvendemp.fk_vendemp join bancovendemp on vendemp.id_vendemp=bancovendemp.fk_vendemp"));
                 break;
-
             case "cadastro-socio":
-                document.getElementById("caixaAltoAcesso").addEventListener("click", (e)=>{
-                    let valorCaixa = document.getElementById("altoAcesso");
-                    if(e.target.checked){
-                        valorCaixa.value = 1;
-                    } else{
-                        valorCaixa.value = 0;
-                    }
-                });
-
                 let tabela, chaveEstrangeira;
                 if(usuario.vinculo=="proprietario"){
                     tabela="socio";
@@ -92,15 +83,12 @@ function carregarPagina(pagina){
                 document.getElementById("form-socio").action = "/api/incluir/"+tabela;
                 document.getElementById("id_empresa").value = idUsuario;
                 document.getElementById("id_empresa").name = chaveEstrangeira;
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela(`/api/buscar/${tabela}?filtro=where ${chaveEstrangeira}=${idUsuario}`);
-
+                //document.getElementById("valores-salvos").innerHTML = await gerarTabela(`/api/buscar/${tabela}?filtro=where ${chaveEstrangeira}=${idUsuario}`);
                 break;
-
             case "cadastro-embarcacao":
                 document.getElementsByName("fk_empbarco")[0].value = idUsuario;
-                document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/embarcacao?filtro=join fotoembar on embarcacao.id_embarcacao=fotoembar.fk_embar where fk_empbarco="+idUsuario);
+                //document.getElementById("valores-salvos").innerHTML = await gerarTabela("/api/buscar/embarcacao?filtro=join fotoembar on embarcacao.id_embarcacao=fotoembar.fk_embar where fk_empbarco="+idUsuario);
                 break;
-
             case "login":
                 let flash = await recuperarDados("/api/dados/flash");
                 if(flash){
@@ -109,6 +97,16 @@ function carregarPagina(pagina){
                 break;
         }
     });
+
+    //Marcação do link ativo no menu
+    if(linkAtivo){
+        linkAtivo.classList.remove("active");
+    }
+    linkAtivo = document.querySelector(`a[href='${location.hash}']`);
+    if(linkAtivo){
+        linkAtivo.classList.add("active");
+    }
+    
 }
 
 //Verificar permissões de acesso

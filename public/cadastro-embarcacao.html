@@ -21,7 +21,7 @@
     <input name="area_nav" placeholder="Área de Navegação" maxlength="100" required>
     <input name="cidade" placeholder="Cidade do serviço" maxlength="50" required>
     <br><br>
-    <input name="valor" placeholder="Valor da Embarcação" maxlength="50" required>
+    <input name="valor" type="number" placeholder="Valor (R$)" min="0" step=".01" required>
     <br><br>
     <label><b>Fotos da Embarcação</b></label>
     <br>
@@ -53,7 +53,7 @@
     
     <input name="fk_empbarco" hidden readonly>
     
-    <button type="submit">Enviar</button>
+    <button class="btn btn-primary" type="submit">Enviar</button>
 </form>
 <br>
 <!-- <p>Lista de valores salvos (ferramenta de teste)</p>
