@@ -7,8 +7,9 @@
     <input type="radio" name="vinculo" value="vendedor">
     <label for="vinculo">Agência de Turismo ou Vendedor Autônomo</label>
     <br><br>
+    
     <input name="razao" placeholder="Razão Social" maxlength="255" required>
-    <input name="cnpj" placeholder="CNPJ" type="number" min="0" max="99999999999999" required>
+    <input name="cnpj" placeholder="CNPJ ou MEI" type="number" min="0" max="99999999999999" required>
     <input name="info" placeholder="Informações (opcional)" maxlength="255">
     <br><br>
     <label for="data_inicio">Data de Início de Atividades</label><br>
@@ -35,11 +36,10 @@
     <input name="senha" placeholder="Senha" type="password" maxlength="255" required>
     <br><br>
     
-    <label><b>Anexar Documentação</b></label>
+    <label><b>Anexar Documentação (imagem jpg ou png)</b></label>
     <br>
+    <label for="documento1">CNPJ: </label>
     <input name="documento1" type="file" required>
-    <br>
-    <input name="documento2" type="file" required>
     <br><br>
     
     <input type="checkbox" required>
@@ -47,6 +47,3 @@
     <br><br>
     <button class="btn btn-primary" type="submit">Enviar</button>
 </form>
-<br>
-<!-- <p>Lista de valores salvos (ferramenta de teste)</p>
-<div id="valores-salvos">Aguardando resposta do banco de dados...</div> -->

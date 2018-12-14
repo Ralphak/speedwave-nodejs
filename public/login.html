@@ -1,5 +1,5 @@
 <form class="form-login center" method="post" action="/api/login">
-    <img class="img-logo" src="img/logo.png">
+    <img class="img-logo center" src="img/logo.png">
     <h2>Acesso Restrito</h2>
     
     <select name="vinculo">
@@ -13,17 +13,18 @@
     
     <div class="form-group">
         <input type="number" name="usuario" id="usuario" class="form-control" required>
-        <label class="form-control-placeholder" for="usuario">CNPJ</label>
+        <label class="form-control-placeholder" for="usuario">CPF / CNPJ / MEI</label>
     </div>
     <div class="form-group">
         <input type="password" name="senha" id="senha" class="form-control" required>
         <label class="form-control-placeholder" for="senha">Senha</label>
     </div>
     
-    <p id="msg-flash"></p>
+    <p id="msg-flash" class="text-danger"></p>
     <button class="btn btn-primary btn-lg center" type="submit">Entrar</button>
     <br>
 
-    <a href="#cadastro-empresa">Cadastre a sua empresa</a>
+    <p><a href="#cadastro-empresa">Cadastre a sua empresa</a></p>
 
+    <input id="redirect_url" name="redirect_url" value="/" hidden readonly>
 </form>

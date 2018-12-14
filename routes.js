@@ -62,8 +62,7 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             telefone : req.body.telefone, 
             email : req.body.email, 
             senha : req.body.senha,
-            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype, 
-            documento2 : req.files.documento2.data.toString("base64")+'.'+req.files.documento2.mimetype
+            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype
         }, 
         dadosEndereco = {
             rua : req.body.rua, 
@@ -144,8 +143,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             cidade : req.body.cidade,
             fk_empbarco : req.body.fk_empbarco,
             valor: req.body.valor,
-            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype, 
-            documento2 : req.files.documento2.data.toString("base64")+'.'+req.files.documento2.mimetype
+            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype
         }, fotosEmbarcacao = {
             proa : req.files.proa.data.toString("base64")+'.'+req.files.proa.mimetype, 
             popa : req.files.popa.data.toString("base64")+'.'+req.files.popa.mimetype, 
@@ -180,7 +178,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
-                        res.redirect('/#cadastro-embarcacao');
+                        res.redirect('/#lista-embarcacoes');
                     });
                 });
             });
@@ -209,7 +207,7 @@ router.post('/api/login', (req, res)=>{
     login.passport.authenticate('local', {
         failureFlash : true,
         failureRedirect : '/#login',
-        successRedirect : '/'
+        successRedirect : req.body.redirect_url
     })(req, res);
 });
 

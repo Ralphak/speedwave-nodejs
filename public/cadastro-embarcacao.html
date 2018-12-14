@@ -3,9 +3,8 @@
     <input name="nome" placeholder="Nome" maxlength="255" required>
     <label for="categoria">Categoria</label>
     <select name="categoria">
-        <option value="barco">Barco</option>
-        <option value="jetski">Jet Ski</option>
-        <option value="lancha">Lancha</option>
+        <option value="Barco">Barco</option>
+        <option value="Lancha">Lancha</option>
     </select>
     <input name="numero" placeholder="Nº de Inscrição" maxlength="25" required>
     <br><br>
@@ -44,17 +43,12 @@
     <input name="interior3" type="file" required>
     <br><br>
 
-    <label><b>Anexar Documentação</b></label>
+    <label><b>Anexar Documentação (imagem jpg ou png)</b></label>
     <br>
     <input name="documento1" type="file" required>
-    <br>
-    <input name="documento2" type="file" required>
     <br><br>
     
     <input name="fk_empbarco" hidden readonly>
     
     <button class="btn btn-primary" type="submit">Enviar</button>
 </form>
-<br>
-<!-- <p>Lista de valores salvos (ferramenta de teste)</p>
-<div id="valores-salvos">Aguardando resposta do banco de dados...</div> -->
