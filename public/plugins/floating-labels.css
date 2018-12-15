@@ -9,6 +9,7 @@
     padding: 7px 0 0 13px;
     transition: all 200ms;
     opacity: 0.5;
+    color: black;
 }
   
 .form-control:focus + .form-control-placeholder,
@@ -16,5 +17,6 @@
     font-size: 90%;
     transform: translate3d(0, -100%, 0);
     opacity: 1;
+    color: white;
 }
   

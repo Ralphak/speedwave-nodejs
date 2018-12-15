@@ -5,12 +5,13 @@
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="plugins/bootstrap.min.css">
     <link rel="stylesheet" href="plugins/floating-labels.css">
+    <link rel="stylesheet" href="plugins/fontawesome-all.min.css">
     <link rel="stylesheet" href="styles.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body hidden>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-darkblue">
+    <nav class="navbar navbar-expand-sm navbar-dark bg-darkblue fixed-top">
         <a class="navbar-brand" href="#"><img src="img/speedwave.png" alt="Speed Wave"></a>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
@@ -25,16 +26,34 @@
                 <li class="nav-item">
                     <a class="nav-link disabled">Galeria</a>
                 </li>
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="" id="dropdown-contato" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Contato</a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-contato">
+                        <a class="dropdown-item" href="mailto:sac@speedwaveturismonautico.com.br">
+                            <i class="fas fa-envelope"></i> sac@speedwaveturismonautico.com.br
+                        </a>
+                        <a class="dropdown-item" href="https://www.facebook.com/Speedwavepasseio/" target="_blank">
+                            <i class="fab fa-facebook"></i> Speed Wave Turismo Náutico
+                        </a>
+                        <a class="dropdown-item" href="https://www.instagram.com/lanchaspeedwave/" target="_blank">
+                            <i class="fab fa-instagram"></i> @lanchaspeedwave
+                        </a>
+                        
+                        
+                        
+                    </div>
+                </li>
             </ul>
             <ul class="navbar-nav ml-auto" id="menu-usuario">
                 <li class="nav-item dropdown" hidden>
-                    <a class="nav-link dropdown-toggle" href="" id="dropdown05" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
-                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown05">
+                    <a class="nav-link dropdown-toggle" href="" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user">
                     </div>
                 </li>
             </ul>
         </div>
     </nav>
+    <div id="div-background"></div>
     <div id="div-content"></div>
 </body>
 

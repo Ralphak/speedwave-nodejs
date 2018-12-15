@@ -20,25 +20,26 @@ document.addEventListener("DOMContentLoaded", async function(){
     }
 
     //alterar menus com base no login, exibindo a página ao finalizar
+    let menuUsuario = document.getElementById("menu-usuario");
     if(usuario){
-        document.querySelector(".dropdown").removeAttribute("hidden");
-        document.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
+        menuUsuario.querySelector(".dropdown").removeAttribute("hidden");
+        menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
         switch(usuario.vinculo){
             case "proprietario":
-                document.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
                     <a class="dropdown-item" href="#cadastro-socio">Cadastro de Sócios</a>
                     <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
                     `);
                 break;
             case "vendedor":
-                document.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
                     <a class="dropdown-item" href="#cadastro-socio">Cadastro de Sócios</a>
                     `);
                 break;
         }
-        document.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
+        menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
     } else{
-        document.getElementById("menu-usuario").insertAdjacentHTML("beforeend", `
+        menuUsuario.insertAdjacentHTML("beforeend", `
             <li class="nav-item">
                 <a class="nav-link" href="#login">Login</a>
             </li>
