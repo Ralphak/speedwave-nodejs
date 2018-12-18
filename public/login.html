@@ -3,20 +3,18 @@
     <h2>Acesso Restrito</h2>
     
     <select name="vinculo">
-        <option value="proprietario">Proprietário</option>
-        <option value="vendedor">Vendedor</option>
-        <option disabled value="cliente">Cliente</option>
-        <option disabled value="socio-proprietario">Sócio (proprietário)</option>
-        <option disabled value="socio-vendedor">Sócio (vendedor)</option>
+        <option value="cliente">Cliente</option>
+        <option value="empresa">Empresa</option>
+        <option value="socio">Sócio</option>
     </select>
     <br><br>
     
     <div class="form-group">
-        <input type="number" name="usuario" id="usuario" class="form-control" required>
+        <input type="number" name="usuario" class="form-control" required>
         <label class="form-control-placeholder" for="usuario">CPF / CNPJ / MEI</label>
     </div>
     <div class="form-group">
-        <input type="password" name="senha" id="senha" class="form-control" required>
+        <input type="password" name="senha" class="form-control" required>
         <label class="form-control-placeholder" for="senha">Senha</label>
     </div>
     
@@ -26,5 +24,5 @@
 
     <p><a href="#cadastro-empresa">Cadastre a sua empresa</a></p>
 
-    <input id="redirect_url" name="redirect_url" value="/" hidden readonly>
+    <input name="redirect_url" value="/" hidden readonly>
 </form>

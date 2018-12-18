@@ -13,7 +13,7 @@ router.get('/api/buscar/:tabela', (req, res)=>{
         req.query.colunas = "*";
     }
     mysql.query(`select ${req.query.colunas} from ${req.params.tabela} ${req.query.filtro}`, (err, results)=>{
-        if (err) {
+        if(err){
             res.send(err.stack);
             return;
         }
@@ -31,7 +31,7 @@ router.post('/api/incluir/:tabela', (req, res)=>{
         req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
     }
     mysql.query("insert into " + req.params.tabela + " set ?", req.body, (err, results)=>{
-        if (err) {
+        if(err){
             res.send(err.stack);
             return;
         }
@@ -43,16 +43,6 @@ router.post('/api/incluir/:tabela', (req, res)=>{
 //Inclui um cadastro de empresa no banco de dados.
 router.post('/api/cadastrar/empresa', (req, res)=>{
     req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
-    let tabelaEmpresa, tabelaEndereco, tabelaBanco;
-    if(req.body.vinculo=="proprietario"){
-        tabelaEmpresa="empresabarco";
-        tabelaEndereco="endemp";
-        tabelaBanco="bancoempbarco";
-    } else{
-        tabelaEmpresa="vendemp";
-        tabelaEndereco="endvendemp";
-        tabelaBanco="bancovendemp";
-    }
     let dadosEmpresa = {
             razao : req.body.razao, 
             cnpj : req.body.cnpj, 
@@ -79,43 +69,35 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             conta : req.body.conta
         };
     mysql.getConnection((err, conn)=>{
-        if (err) {
+        if(err){
             res.send(err.stack);
             return;
         }
         conn.beginTransaction((err)=>{
-            if (err) {
+            if(err){
                 res.send(err.stack);
                 return;
             }
-            conn.query(`insert into ${tabelaEmpresa} set ?`, dadosEmpresa, (err, results)=>{
-                if (err) {
+            conn.query(`insert into empresabarco set ?`, dadosEmpresa, (err, results)=>{
+                if(err){
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
                 let idEmpresa = results.insertId;
-                if(req.body.vinculo=="proprietario"){
-                    dadosEndereco.fk_empresa = idEmpresa;
-                } else{
-                    dadosEndereco.fk_vendemp = idEmpresa;
-                }
-                conn.query(`insert into ${tabelaEndereco} set ?`, dadosEndereco, (err, results)=>{
-                    if (err) {
+                dadosEndereco.fk_empresa = idEmpresa;
+                conn.query(`insert into endemp set ?`, dadosEndereco, (err, results)=>{
+                    if(err){
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    if(req.body.vinculo=="proprietario"){
-                        dadosPagamento.fk_empresa = idEmpresa;
-                    } else{
-                        dadosPagamento.fk_vendemp = idEmpresa;
-                    }
-                    conn.query(`insert into ${tabelaBanco} set ?`, dadosPagamento, (err, results)=>{
-                        if (err) {
+                    dadosPagamento.fk_empresa = idEmpresa;
+                    conn.query(`insert into bancoempbarco set ?`, dadosPagamento, (err, results)=>{
+                        if(err){
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
                         conn.commit((err)=>{
-                            if (err) {
+                            if(err){
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
@@ -153,28 +135,28 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             interior3 : req.files.interior3.data.toString("base64")+'.'+req.files.interior3.mimetype
         };
     mysql.getConnection((err, conn)=>{
-        if (err) {
+        if(err){
             res.send(err.stack);
             return;
         }
         conn.beginTransaction((err)=>{
-            if (err) {
+            if(err){
                 res.send(err.stack);
                 return;
             }
             conn.query("insert into embarcacao set ?", dadosEmbarcacao, (err, results)=>{
-                if (err) {
+                if(err){
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
                 fotosEmbarcacao.fk_embar = results.insertId;
                 conn.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
-                    if (err) {
+                    if(err){
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
                     conn.commit((err)=>{
-                        if (err) {
+                        if(err){
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
@@ -189,22 +171,22 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
 //Requisição de login.
 router.post('/api/login', (req, res)=>{
     let tabela, chave;
-    switch(req.body.vinculo){
-        case "proprietario":
+    vinculoUsuario = req.body.vinculo;
+    switch(vinculoUsuario){
+        case "empresa":
             tabela="empresabarco";
             chave="cnpj";
             break;
-        case "vendedor":
-            tabela="vendemp";
-            chave="cnpj";
+        case "socio":
+            tabela="socio";
+            chave="cpf";
             break;
         default:
-            res.send("Opção de vínculo não atribuída ao método de login.");
-            return;
+            tabela="usuario";
+            chave="login";
+            break;
     }
-    vinculoUsuario = req.body.vinculo;
-    let login = new loginAPI(tabela, chave);
-    login.passport.authenticate('local', {
+    new loginAPI(tabela, chave).passport.authenticate('local', {
         failureFlash : true,
         failureRedirect : '/#login',
         successRedirect : req.body.redirect_url
@@ -220,13 +202,13 @@ router.get('/api/logout', function(req, res) {
 //Enviar dados do backend para o frontend
 router.get('/api/dados/:dados', (req, res)=>{
     if(req.params.dados=="usuario" && req.user){
-        let usuario = req.user;
-        delete usuario['senha'];
-        usuario.vinculo = vinculoUsuario;
-        res.json(usuario);
-    } else if(req.params.dados=="flash" && res.locals.flash.length > 0){
+        req.user.vinculo = vinculoUsuario;
+        res.json(req.user);
+    } 
+    else if(req.params.dados=="flash" && res.locals.flash.length > 0){
         res.json(res.locals.flash.pop());
-    } else{
+    } 
+    else{
         res.json(null);
     }
 });

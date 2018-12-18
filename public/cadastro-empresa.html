@@ -1,13 +1,6 @@
 <h3>Cadastro de Empresa</h3>
 
 <form method="post" action="/api/cadastrar/empresa" enctype="multipart/form-data">
-    <input type="radio" name="vinculo" value="proprietario" checked>
-    <label for="vinculo">Proprietário de Embarcação</label>
-    <br>
-    <input type="radio" name="vinculo" value="vendedor">
-    <label for="vinculo">Agência de Turismo ou Vendedor Autônomo</label>
-    <br><br>
-    
     <input name="razao" placeholder="Razão Social" maxlength="255" required>
     <input name="cnpj" placeholder="CNPJ ou MEI" type="number" min="0" max="99999999999999" required>
     <input name="info" placeholder="Informações (opcional)" maxlength="255">

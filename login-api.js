@@ -8,13 +8,13 @@ function loginAPI (tabela, chave){
   this.passport = passport;
   
   passport.serializeUser(function(user, done) {
-    done(null, Object.values(user)[0]);
+    done(null, user[chave]);
   });
   
   passport.deserializeUser(function(id, done) {
     mysql.query(`select * from ${tabela} where ${chave}="${id}" limit 1`, (err, user)=>{
-      user = user.pop();
-      done(err, user);
+      delete user[0].senha;
+      done(err, user[0]);
     });
   });
   
@@ -40,7 +40,6 @@ function loginAPI (tabela, chave){
         return done(null, false, req.flash('message', 'Senha incorreta.'));
       }
       // Tanto usuário e senha estão corretos, retorna usuário através do método done, e agora será considerado um sucesso
-      delete user['senha'];
       return done(null, user);
     });
   }));

@@ -1,5 +1,5 @@
 <h3>Cadastro de Sócio</h3>
-<form method="post" id="form-socio" action=""> <!-- O action é definido via script -->
+<form method="post" id="form-socio" action="/api/incluir/socio">
     <input name="nome" placeholder="Nome" maxlength="255" required>
     <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
     <br><br>
@@ -19,7 +19,7 @@
     <label for="altoAcesso">Alto Acesso</a></label>
     <br><br>
 
-    <input id="id_empresa" hidden readonly>
+    <input name="fk_empresa" hidden readonly>
 
     <button class="btn btn-primary" type="submit">Enviar</button>
 </form>
