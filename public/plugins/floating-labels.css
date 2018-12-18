@@ -1,3 +1,5 @@
+/* Source: https://codepen.io/peiche/pen/xOVpPo */
+
 .form-group {
     position: relative;
     margin-bottom: 1.5rem;
@@ -10,6 +12,7 @@
     transition: all 200ms;
     opacity: 0.5;
     color: black;
+    pointer-events: none;
 }
   
 .form-control:focus + .form-control-placeholder,

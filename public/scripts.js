@@ -1,4 +1,4 @@
-var usuario, linkAtivo, linkRedirect;
+var usuario, linkAtivo, linkRedirect, listaBarcos, listaSocios;
 
 
 //Eventos que devem ocorrer assim que o site é carregado
@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", async function(){
                 menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
                 //Itens do menu
                 menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
-                    <a class="dropdown-item" href="#cadastro-socio">Cadastro de Sócios</a>
+                    <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
                     <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
                     `);
                 break;
@@ -65,7 +65,6 @@ function carregarPagina(pagina){
         switch(pagina){
             case "cadastro-socio":
                 document.getElementsByName("fk_empresa")[0].value = usuario.id;
-                //document.getElementById("valores-salvos").innerHTML = await gerarTabela(`/api/buscar/${tabela}?filtro=where ${chaveEstrangeira}=${usuario.id}`);
                 break;
 
             case "cadastro-embarcacao":
@@ -73,20 +72,23 @@ function carregarPagina(pagina){
                 break;
 
             case "lista-embarcacoes":
-                let lista = await recuperarDados("/api/buscar/embarcacao?filtro=join fotoembar on embarcacao.id=fotoembar.fk_embar where fk_empbarco="+usuario.id);
+                if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao?filtro=
+                    join fotoembar on embarcacao.id=fotoembar.fk_embar 
+                    where fk_empbarco=${usuario.id} 
+                    order by nome, categoria`);
                 //Encerra se a lista estiver vazia
-                if(lista.length == 0){
-                    document.getElementById("lista-cards").innerHTML = "Nenhum registro encontrado.";
+                if(listaBarcos.length == 0){
+                    document.getElementById("cards-barcos").innerHTML = "Nenhum registro encontrado.";
                     break;
                 }
                 //Insere o código HTML para cada card
-                document.getElementById("lista-cards").innerHTML = "";
-                for(let i=0; i<lista.length; i++){
-                    let extensao = `${lista[i].través}`.split(".");
-                    document.getElementById("lista-cards").insertAdjacentHTML("beforeend", `
+                document.getElementById("cards-barcos").innerHTML = "";
+                for(let i=0; i<listaBarcos.length; i++){
+                    let extensao = `${listaBarcos[i].través}`.split(".");
+                    document.getElementById("cards-barcos").insertAdjacentHTML("beforeend", `
                         <div class="card m-1" id="${i}">
                             <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
-                            <p class="card-text text-center">${lista[i].nome}<br><small class="text-muted">${lista[i].categoria}</small></p>
+                            <p class="card-text text-center">${listaBarcos[i].nome}<br><small class="text-muted">${listaBarcos[i].categoria}</small></p>
                         </div>
                     `);
                 }
@@ -94,24 +96,24 @@ function carregarPagina(pagina){
                 document.querySelectorAll(".card").forEach(card =>{
                     card.addEventListener("click", (e)=>{
                         let i = e.currentTarget.id,
-                            proa = `${lista[i].proa}`.split("."),
-                            popa = `${lista[i].popa}`.split("."),
-                            traves = `${lista[i].través}`.split("."),
-                            interior1 = `${lista[i].interior1}`.split("."),
-                            interior2 = `${lista[i].interior2}`.split("."),
-                            interior3 = `${lista[i].interior3}`.split(".");
+                            proa = `${listaBarcos[i].proa}`.split("."),
+                            popa = `${listaBarcos[i].popa}`.split("."),
+                            traves = `${listaBarcos[i].través}`.split("."),
+                            interior1 = `${listaBarcos[i].interior1}`.split("."),
+                            interior2 = `${listaBarcos[i].interior2}`.split("."),
+                            interior3 = `${listaBarcos[i].interior3}`.split(".");
                         document.querySelector(".modal-body").innerHTML = `
-                            <b>Nome:</b> ${lista[i].nome}<br>
-                            <b>Categoria:</b> ${lista[i].categoria}<br>
-                            <b>Número:</b> ${lista[i].numero}<br>
-                            <b>Data de Registro:</b> ${formatarData(lista[i].data)}<br>
-                            <b>Validade do Documento:</b> ${formatarData(lista[i].validade)}<br>
-                            <b>Passageiros:</b> ${lista[i].capacidade}<br>
-                            <b>Tripulantes:</b> ${lista[i].qtd_tripulantes}<br>
-                            <b>Atividade:</b> ${lista[i].atividade}<br>
-                            <b>Área de Navegação:</b> ${lista[i].area_nav}<br>
-                            <b>Cidade:</b> ${lista[i].cidade}<br>
-                            <b>Valor:</b> R$${lista[i].valor}<br>
+                            <b>Nome:</b> ${listaBarcos[i].nome}<br>
+                            <b>Categoria:</b> ${listaBarcos[i].categoria}<br>
+                            <b>Número:</b> ${listaBarcos[i].numero}<br>
+                            <b>Data de Registro:</b> ${formatarData(listaBarcos[i].data)}<br>
+                            <b>Validade do Documento:</b> ${formatarData(listaBarcos[i].validade)}<br>
+                            <b>Passageiros:</b> ${listaBarcos[i].capacidade}<br>
+                            <b>Tripulantes:</b> ${listaBarcos[i].qtd_tripulantes}<br>
+                            <b>Atividade:</b> ${listaBarcos[i].atividade}<br>
+                            <b>Área de Navegação:</b> ${listaBarcos[i].area_nav}<br>
+                            <b>Cidade:</b> ${listaBarcos[i].cidade}<br>
+                            <b>Valor:</b> R$${listaBarcos[i].valor}<br>
                             <p><b>Fotos:</b></p>
                             <div class="row">
                                 <img class="img-anexo" src="data:${proa[1]};base64, ${proa[0]}">
@@ -125,12 +127,32 @@ function carregarPagina(pagina){
                         $('.modal').modal('show');
                     });
                 });
+                //Fitro da lista
+                document.getElementsByName("filtroBarcos").forEach(radio =>{
+                    radio.addEventListener("click", (e)=>{
+                        for(let i=0; i<listaBarcos.length; i++){
+                            if(e.target.value == "Todos" || listaBarcos[i].categoria == e.target.value){
+                                document.getElementById(i).removeAttribute("hidden");
+                            } else{
+                                document.getElementById(i).setAttribute("hidden","");
+                            }
+                        }
+                    });
+                });
+                break;
+
+            case "lista-socios":
+                if(!listaSocios) listaSocios = await recuperarDados(`/api/buscar/socio
+                    ?colunas=id,nome,cpf,data_nasc,rua,bairro,cidade,estado,pais,cep,altoAcesso
+                    &filtro=where fk_empresa=${usuario.id} 
+                    order by nome`),
+                    cabecalhos = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","País","CEP","Alto Acesso"];
+                document.getElementById("tabela-socios").innerHTML = gerarTabela(listaSocios, cabecalhos);
                 break;
 
             case "login":
                 if(linkRedirect){
                     document.getElementsByName("redirect_url")[0].value = linkRedirect;
-                    document.name
                 }
                 let flash = await recuperarDados("/api/dados/flash");
                 if(flash){
@@ -138,6 +160,9 @@ function carregarPagina(pagina){
                 }
                 break;
 
+            case "pagina-inicial":
+                $('.carousel').carousel()
+                break;
         }
     });
 
@@ -157,9 +182,10 @@ function carregarPagina(pagina){
 function permitirAcesso(pagina){
     switch(pagina){
         //Permissões para empresa e sócio
-        case "#cadastro-socio":
         case "#cadastro-embarcacao":
+        case "#cadastro-socio":
         case "#lista-embarcacoes":
+        case "#lista-socios":
             if(!usuario || usuario.vinculo=="cliente"){
                 return false;
             }
@@ -197,4 +223,45 @@ function formatarData(stringData){
     stringData = new Date(stringData);
     let data = `${stringData.getDate()}/${stringData.getMonth()+1}/${stringData.getFullYear()}`;
     return data;
+}
+
+
+//Gera uma tabela
+function gerarTabela (dados, cabecalhos){
+    //Encerra se a lista estiver vazia
+    if(dados.length == 0){
+        return "<td>Nenhum registro encontrado.</td>";
+    }
+    //Cabeçalho
+    let tabela=`<thead><tr><th></th>`;
+    cabecalhos.forEach(nome =>{
+        tabela+=`<th scope="col">${nome}</th>`;
+    });
+    tabela+="</tr></thead><tbody>";
+    //Valores
+    dados.forEach(dado =>{
+        tabela+=`<tr><td><input type="checkbox" name="itensMarcados" value="${dado.id}"></td>`;
+        Object.keys(dado).map(valor =>{
+            switch(valor){
+                case "id":
+                    break;
+                case "data_nasc":
+                    tabela+=`<td>${formatarData(dado[valor])}</td>`;
+                    break;
+                case "altoAcesso":
+                    if(dado[valor] == 1){
+                        tabela+=`<td><i class="fas fa-check"></i></td>`;
+                    } else{
+                        tabela+=`<td></td>`;
+                    }
+                    break;
+                default:
+                    tabela+=`<td>${dado[valor]}</td>`;
+                    break;
+            }
+        });
+        tabela+="</tr>"
+    });
+    tabela+="</tbody>";
+    return tabela;
 }
