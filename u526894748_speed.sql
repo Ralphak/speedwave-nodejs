@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 20/12/2018 às 02:50
+-- Tempo de geração: 20/12/2018 às 03:17
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -157,8 +157,8 @@ CREATE TABLE `endemp` (
   `id` int(11) NOT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cep` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `bairro` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `cep` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
@@ -176,9 +176,9 @@ CREATE TABLE `endereco` (
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cep` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cidade` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `estado` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `pais` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL
+  `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

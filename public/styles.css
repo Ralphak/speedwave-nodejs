@@ -69,6 +69,10 @@ i{
     max-height: 30%;
 }
 
+input{
+    margin-bottom: 4px;
+}
+
 .modal, .page-link, .table-light{
     color: black !important;
 }

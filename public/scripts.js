@@ -5,28 +5,28 @@ var usuario, linkAtivo, linkRedirect, listaAlugueis, listaBarcos, listaPasseios,
 document.addEventListener("DOMContentLoaded", async function(){
     //recuperar dados de usuário
     usuario = await recuperarDados("/api/dados/usuario");
+    console.log(usuario);
 
     //alterar menus com base no login, exibindo a página ao finalizar
     let menuUsuario = document.getElementById("menu-usuario");
     if(usuario){
         menuUsuario.querySelector(".dropdown").removeAttribute("hidden");
         if(usuario.vinculo=="empresa" || usuario.vinculo=="socio"){
-            //Nome
-            if(usuario.razao){
-                menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
-            } else{
-                menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.nome;
-            }
+            //Insere a razão social no menu
+            menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
             //Itens do menu
             menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
-                <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
-                <a class="dropdown-item" href="#lista-servicos">Meus Serviços</a>
-                `);
+            <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
+            <a class="dropdown-item" href="#lista-servicos">Meus Serviços</a>
+            `);
             if(usuario.vinculo=="empresa"){
                 menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
-                    <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
-                    `);
+                <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
+                `);
             }
+        } else{
+            //Insere o nome no menu
+            menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.nome;
         }
         menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
     } else{
@@ -206,7 +206,8 @@ function carregarPagina(pagina){
 
             case "login":
                 let flash = await recuperarDados("/api/dados/flash"),
-                    labelLogin = document.getElementById("label-login");
+                    labelLogin = document.getElementById("label-login"),
+                    linkCadastro = document.getElementById("link-cadastro");
                 if(linkRedirect){
                     document.getElementsByName("redirect_url")[0].value = linkRedirect;
                 }
@@ -217,12 +218,15 @@ function carregarPagina(pagina){
                     switch(e.currentTarget.value){
                         case "empresa":
                             labelLogin.innerHTML = "CNPJ";
+                            linkCadastro.innerHTML = `<a href="#cadastro-empresa">Cadastre a sua empresa</a>`;
                             break;
                         case "socio":
                             labelLogin.innerHTML = "CPF";
+                            linkCadastro.innerHTML = ``;
                             break;
                         default:
                             labelLogin.innerHTML = "Login";
+                            linkCadastro.innerHTML = `<a href="#cadastro-cliente">Cadastre-se!</a>`;
                             break;
                     }
                 });
@@ -268,6 +272,7 @@ function permitirAcesso(pagina){
             break;
 
         //Impede que um usuário já logado acesse o login novamente
+        case "#cadastro-cliente":
         case "#cadastro-empresa":
         case "#login":
             if(usuario){

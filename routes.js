@@ -172,6 +172,60 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
     });
 });
 
+//Inclui um cadastro de cliente no banco de dados.
+router.post('/api/cadastrar/cliente', (req, res)=>{
+    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    let dadosCliente = {
+            nome : req.body.nome, 
+            cpf : req.body.cpf, 
+            email : req.body.email,
+            telefone : req.body.telefone, 
+            telefone2 : req.body.telefone2, 
+            login : req.body.login,
+            senha : req.body.senha,
+        }, 
+        dadosEndereco = {
+            rua : req.body.rua, 
+            cep : req.body.cep, 
+            bairro : req.body.bairro, 
+            cidade : req.body.cidade, 
+            estado : req.body.estado, 
+            pais : req.body.pais
+        };
+        mysql.getConnection((err, conn)=>{
+            if(err){
+                res.send(err.stack);
+                return;
+            }
+            conn.beginTransaction((err)=>{
+                if(err){
+                    res.send(err.stack);
+                    return;
+                }
+                conn.query("insert into usuario set ?", dadosCliente, (err, results)=>{
+                    if(err){
+                        conn.rollback(()=>{res.send(err.stack);});
+                        return;
+                    }
+                    dadosEndereco.fk_usuario = results.insertId;
+                    conn.query("insert into endereco set ?", dadosEndereco, (err, results)=>{
+                        if(err){
+                            conn.rollback(()=>{res.send(err.stack);});
+                            return;
+                        }
+                        conn.commit((err)=>{
+                            if(err){
+                                conn.rollback(()=>{res.send(err.stack);});
+                                return;
+                            }
+                            res.redirect('/#sucesso');
+                        });
+                    });
+                });
+            });
+        });
+});
+
 //Requisição de login.
 router.post('/api/login', (req, res)=>{
     vinculoUsuario = req.body.vinculo;

@@ -1,26 +1,24 @@
-<h3>Cadastro de Sócio</h3>
-<form method="post" id="form-socio" action="/api/incluir/socio?redirect=lista-socios">
+<h3>Cadastro de Cliente</h3>
+<form method="post" id="form-cliente" action="/api/cadastrar/cliente">
     <input name="nome" placeholder="Nome" maxlength="255" required>
     <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
-    <br><br>
+    <input name="email" placeholder="Email" type="email" maxlength="100" required>
+    <input name="telefone" placeholder="Telefone (obrigatório)" type="number" min="0" max="999999999999999" required>
+    <input name="telefone2" placeholder="Telefone 2 (opcional)" type="number" min="0" max="999999999999999">
+    <br>
     <label for="data_nasc">Data de Nascimento</label>
     <input name="data_nasc" type="date" required>
     <br><br>
     <label>Endereço</label><br>
     <input name="rua" placeholder="Rua, nº e complemento" maxlength="255" required>
-    <input name="cep" placeholder="CEP" maxlength="25" required>
+    <input name="cep" placeholder="CEP" maxlength="15" required>
     <input name="bairro" placeholder="Bairro" maxlength="50" required>
     <input name="cidade" placeholder="Cidade" maxlength="50" required>
     <input name="estado" placeholder="Estado" maxlength="50" required>
     <input name="pais" placeholder="País" maxlength="50" required>
     <br><br>
+    <input name="login" placeholder="Login" maxlength="100" required>
     <input name="senha" placeholder="Senha" type="password" maxlength="255" required>
     <br><br>
-    <input type="checkbox" name="altoAcesso" value=1>
-    <label for="altoAcesso">Alto Acesso</a></label>
-    <br><br>
-
-    <input name="fk_empresa" hidden readonly>
-
     <button class="btn btn-primary" type="submit">Enviar</button>
 </form>
