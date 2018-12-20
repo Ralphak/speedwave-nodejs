@@ -69,11 +69,15 @@ i{
     max-height: 30%;
 }
 
-.modal, .table-light{
-    color: black
+.modal, .page-link, .table-light{
+    color: black !important;
 }
 
 .nav-link{
     font-size: 20px;
     padding-bottom: .7rem;
+}
+
+td i{
+    padding:2px;
 }

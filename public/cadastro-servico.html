@@ -1,0 +1,16 @@
+<h3>Cadastro de Serviço</h3>
+<form method="post" id="form-servico" action="" hidden> <!-- O action é definido via script -->
+    <label for="fk_embarcacao">Embarcação</label>
+    <select name="fk_embarcacao"></select>
+    <br>
+    <label for="data_aluguel">Horário da Atividade</label>
+    <input name="data_aluguel" type="datetime-local" required>
+    <b id="erro-data" class="text-danger" hidden>A data deve ser posterior à de hoje</b>
+    <br>
+    <input name="valor" type="number" placeholder="Preço (R$)" min="0" step=".01" required>
+    <br><br>
+
+    <input name="fk_empresa" hidden readonly>
+
+    <button class="btn btn-primary" type="submit">Enviar</button>
+</form>

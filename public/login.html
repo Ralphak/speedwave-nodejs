@@ -1,17 +1,17 @@
 <form class="form-login center" method="post" action="/api/login">
     <img class="img-logo center" src="img/logo.png">
-    <h2>Acesso Restrito</h2>
+    <h2>Acesso ao Cliente</h2>
     
-    <select name="vinculo">
-        <option value="cliente">Cliente</option>
+    <select name="vinculo" id="opcao-vinculo">
+        <option value="cliente" selected>Cliente</option>
         <option value="empresa">Empresa</option>
         <option value="socio">Sócio</option>
     </select>
     <br><br>
     
     <div class="form-group">
-        <input type="number" name="usuario" class="form-control" required>
-        <label class="form-control-placeholder" for="usuario">CPF / CNPJ / MEI</label>
+        <input name="usuario" class="form-control" required>
+        <label id="label-login" class="form-control-placeholder" for="usuario">Login</label>
     </div>
     <div class="form-group">
         <input type="password" name="senha" class="form-control" required>

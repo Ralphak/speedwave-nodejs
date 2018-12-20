@@ -1,26 +1,32 @@
-var usuario, linkAtivo, linkRedirect, listaBarcos, listaSocios;
+var usuario, linkAtivo, linkRedirect, listaAlugueis, listaBarcos, listaPasseios, listaSocios;
 
 
 //Eventos que devem ocorrer assim que o site é carregado
 document.addEventListener("DOMContentLoaded", async function(){
     //recuperar dados de usuário
     usuario = await recuperarDados("/api/dados/usuario");
-    console.log(usuario);
 
     //alterar menus com base no login, exibindo a página ao finalizar
     let menuUsuario = document.getElementById("menu-usuario");
     if(usuario){
         menuUsuario.querySelector(".dropdown").removeAttribute("hidden");
-        switch(usuario.vinculo){
-            case "empresa":
-                //Nome
+        if(usuario.vinculo=="empresa" || usuario.vinculo=="socio"){
+            //Nome
+            if(usuario.razao){
                 menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
-                //Itens do menu
+            } else{
+                menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.nome;
+            }
+            //Itens do menu
+            menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
+                <a class="dropdown-item" href="#lista-servicos">Meus Serviços</a>
+                `);
+            if(usuario.vinculo=="empresa"){
                 menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
                     <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
-                    <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
                     `);
-                break;
+            }
         }
         menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
     } else{
@@ -63,13 +69,61 @@ function carregarPagina(pagina){
     //Carrega a página, adicionando parâmetros para páginas específicas
     $("#div-content").load(`${pagina}.html`, async()=>{
         switch(pagina){
-            case "cadastro-socio":
-                document.getElementsByName("fk_empresa")[0].value = usuario.id;
-                break;
-
             case "cadastro-embarcacao":
                 document.getElementsByName("fk_empbarco")[0].value = usuario.id;
                 break;
+
+            case "cadastro-servico":
+                let embarcacoesServico = await recuperarDados(`/api/buscar/embarcacao
+                        ?colunas=id,nome,categoria,qtd_passageiros,qtd_tripulantes
+                        &filtro=where fk_empbarco=${usuario.id} order by nome`),
+                    opcoesEmbarcacao = document.getElementsByName("fk_embarcacao")[0],
+                    formServico = document.getElementById("form-servico");
+                //Encerra se a lista estiver vazia
+                if(embarcacoesServico.length == 0){
+                    document.getElementById("div-content").insertAdjacentHTML("beforeend", "<p>Você não possui nenhuma embarcação registrada.</p>");
+                    break;
+                }
+                //Insere dados no formulário
+                document.getElementsByName("fk_empresa")[0].value = usuario.id;
+                embarcacoesServico.forEach(embarcacao =>{
+                    let tipoServico = "";
+                    if(embarcacao.categoria=="Barco"){
+                        tipoServico = "Passeio de "+embarcacao.categoria;
+                    } else{
+                        tipoServico = "Aluguel de "+embarcacao.categoria;
+                    }
+                    opcoesEmbarcacao.insertAdjacentHTML("beforeend", `
+                        <option value="${embarcacao.id}" data-categoria="${embarcacao.categoria}">${embarcacao.nome} - ${tipoServico} - ${embarcacao.qtd_passageiros} passageiros</option>
+                    `);
+                });
+                formServico.removeAttribute("hidden");
+                //Muda o URL do POST de acordo com a embarcação
+                let setActionURL = function(){
+                    let categoria = opcoesEmbarcacao.options[opcoesEmbarcacao.selectedIndex].dataset.categoria;
+                    if(categoria == "Barco"){
+                        formServico.action="/api/incluir/aluguelbarco?redirect=lista-servicos";
+                    } else{
+                        formServico.action="/api/incluir/alugalancha?redirect=lista-servicos";
+                    }
+                }
+                setActionURL();
+                opcoesEmbarcacao.addEventListener("change", setActionURL);
+                //Validação da data
+                document.getElementsByName("data_aluguel")[0].addEventListener("change", (e)=>{
+                    if(new Date(e.currentTarget.value).setHours(0,0,0,0) <= new Date().setHours(0,0,0,0)){
+                        document.getElementById("erro-data").removeAttribute("hidden","");
+                        document.querySelector(".btn").setAttribute("disabled","");
+                    } else{
+                        document.getElementById("erro-data").setAttribute("hidden","");
+                        document.querySelector(".btn").removeAttribute("disabled","");
+                    }
+                });
+                break;    
+
+            case "cadastro-socio":
+                document.getElementsByName("fk_empresa")[0].value = usuario.id;
+                break;            
 
             case "lista-embarcacoes":
                 if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao?filtro=
@@ -84,7 +138,7 @@ function carregarPagina(pagina){
                 //Insere o código HTML para cada card
                 document.getElementById("cards-barcos").innerHTML = "";
                 for(let i=0; i<listaBarcos.length; i++){
-                    let extensao = `${listaBarcos[i].través}`.split(".");
+                    let extensao = `${listaBarcos[i].traves}`.split(".");
                     document.getElementById("cards-barcos").insertAdjacentHTML("beforeend", `
                         <div class="card m-1" id="${i}">
                             <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
@@ -95,36 +149,19 @@ function carregarPagina(pagina){
                 //Cria um modal quando um dos cards é clicado
                 document.querySelectorAll(".card").forEach(card =>{
                     card.addEventListener("click", (e)=>{
-                        let i = e.currentTarget.id,
-                            proa = `${listaBarcos[i].proa}`.split("."),
-                            popa = `${listaBarcos[i].popa}`.split("."),
-                            traves = `${listaBarcos[i].través}`.split("."),
-                            interior1 = `${listaBarcos[i].interior1}`.split("."),
-                            interior2 = `${listaBarcos[i].interior2}`.split("."),
-                            interior3 = `${listaBarcos[i].interior3}`.split(".");
-                        document.querySelector(".modal-body").innerHTML = `
-                            <b>Nome:</b> ${listaBarcos[i].nome}<br>
-                            <b>Categoria:</b> ${listaBarcos[i].categoria}<br>
-                            <b>Número:</b> ${listaBarcos[i].numero}<br>
-                            <b>Data de Registro:</b> ${formatarData(listaBarcos[i].data)}<br>
-                            <b>Validade do Documento:</b> ${formatarData(listaBarcos[i].validade)}<br>
-                            <b>Passageiros:</b> ${listaBarcos[i].capacidade}<br>
-                            <b>Tripulantes:</b> ${listaBarcos[i].qtd_tripulantes}<br>
-                            <b>Atividade:</b> ${listaBarcos[i].atividade}<br>
-                            <b>Área de Navegação:</b> ${listaBarcos[i].area_nav}<br>
-                            <b>Cidade:</b> ${listaBarcos[i].cidade}<br>
-                            <b>Valor:</b> R$${listaBarcos[i].valor}<br>
-                            <p><b>Fotos:</b></p>
-                            <div class="row">
-                                <img class="img-anexo" src="data:${proa[1]};base64, ${proa[0]}">
-                                <img class="img-anexo" src="data:${popa[1]};base64, ${popa[0]}">
-                                <img class="img-anexo" src="data:${traves[1]};base64, ${traves[0]}">
-                                <img class="img-anexo" src="data:${interior1[1]};base64, ${interior1[0]}">
-                                <img class="img-anexo" src="data:${interior2[1]};base64, ${interior2[0]}">
-                                <img class="img-anexo" src="data:${interior3[1]};base64, ${interior3[0]}">
-                            </div>
-                        `;
-                        $('.modal').modal('show');
+                        gerarModal(listaBarcos, e.currentTarget.id, {
+                            nome: "Nome",
+                            categoria: "Categoria",
+                            numero: "Número",
+                            data: "Data de Registro",
+                            validade: "Validade do Documento",
+                            qtd_passageiros: "Passageiros",
+                            qtd_tripulantes: "Tripulantes",
+                            atividade: "Atividade",
+                            area_nav: "Área de Navegação",
+                            cidade: "Cidade",
+                            valor: "Valor"
+                        }, ['proa', 'popa', 'traves', 'interior1', 'interior2', 'interior3']);
                     });
                 });
                 //Fitro da lista
@@ -141,23 +178,54 @@ function carregarPagina(pagina){
                 });
                 break;
 
+            case "lista-servicos":
+                //Tabela de aluguéis
+                if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha_empresa
+                    ?filtro=where fk_empresa=${usuario.id}
+                    order by data_aluguel`);
+                let cabecalhosAlugueis = ["Embarcação","Comprador","Data do Evento","Preço unitário","Status"];
+                document.getElementById("tabela-alugueis").innerHTML = gerarTabela(listaAlugueis, cabecalhosAlugueis);
+                $("#tabela-alugueis").DataTable();
+                //Tabela de passeios
+                if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
+                    ?filtro=where fk_empresa=${usuario.id}
+                    order by data_aluguel`);
+                let cabecalhosPasseios = ["Embarcação","Passageiros","Data do Evento","Preço unitário","Status"];
+                document.getElementById("tabela-passeios").innerHTML = gerarTabela(listaPasseios, cabecalhosPasseios);
+                $("#tabela-passeios").DataTable();
+                break;
+
             case "lista-socios":
                 if(!listaSocios) listaSocios = await recuperarDados(`/api/buscar/socio
                     ?colunas=id,nome,cpf,data_nasc,rua,bairro,cidade,estado,pais,cep,altoAcesso
                     &filtro=where fk_empresa=${usuario.id} 
-                    order by nome`),
-                    cabecalhos = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","País","CEP","Alto Acesso"];
-                document.getElementById("tabela-socios").innerHTML = gerarTabela(listaSocios, cabecalhos);
+                    order by nome`);
+                let cabecalhosSocios = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","País","CEP","Alto Acesso"];
+                document.getElementById("tabela-socios").innerHTML = gerarTabela(listaSocios, cabecalhosSocios);
                 break;
 
             case "login":
+                let flash = await recuperarDados("/api/dados/flash"),
+                    labelLogin = document.getElementById("label-login");
                 if(linkRedirect){
                     document.getElementsByName("redirect_url")[0].value = linkRedirect;
                 }
-                let flash = await recuperarDados("/api/dados/flash");
                 if(flash){
                     document.getElementById("msg-flash").innerHTML= flash.message;
                 }
+                document.getElementById("opcao-vinculo").addEventListener("change", (e)=>{
+                    switch(e.currentTarget.value){
+                        case "empresa":
+                            labelLogin.innerHTML = "CNPJ";
+                            break;
+                        case "socio":
+                            labelLogin.innerHTML = "CPF";
+                            break;
+                        default:
+                            labelLogin.innerHTML = "Login";
+                            break;
+                    }
+                });
                 break;
 
             case "pagina-inicial":
@@ -183,10 +251,18 @@ function permitirAcesso(pagina){
     switch(pagina){
         //Permissões para empresa e sócio
         case "#cadastro-embarcacao":
-        case "#cadastro-socio":
+        case "#cadastro-servico":
         case "#lista-embarcacoes":
-        case "#lista-socios":
+        case "#lista-servicos":
             if(!usuario || usuario.vinculo=="cliente"){
+                return false;
+            }
+            break;
+
+        //Permissões somente para empresa
+        case "#lista-socios":
+        case "#cadastro-socio":
+            if(!usuario || usuario.vinculo!="empresa"){
                 return false;
             }
             break;
@@ -219,34 +295,48 @@ async function recuperarDados (url) {
 
 
 //Formatação de data
-function formatarData(stringData){
+function formatarData(stringData, hora=false){
     stringData = new Date(stringData);
     let data = `${stringData.getDate()}/${stringData.getMonth()+1}/${stringData.getFullYear()}`;
+    if(hora){
+        data += ` ${stringData.getHours()}:${stringData.getMinutes()}`;
+    }
     return data;
 }
 
 
-//Gera uma tabela
+//Gera uma tabela com os dados e os nomes de cabeçalho recebidos
 function gerarTabela (dados, cabecalhos){
     //Encerra se a lista estiver vazia
     if(dados.length == 0){
         return "<td>Nenhum registro encontrado.</td>";
     }
     //Cabeçalho
-    let tabela=`<thead><tr><th></th>`;
+    //let tabela=`<thead><tr><th></th>`;
+    let tabela=`<thead><tr>`;
     cabecalhos.forEach(nome =>{
         tabela+=`<th scope="col">${nome}</th>`;
     });
     tabela+="</tr></thead><tbody>";
     //Valores
     dados.forEach(dado =>{
-        tabela+=`<tr><td><input type="checkbox" name="itensMarcados" value="${dado.id}"></td>`;
+        /* tabela+=`<tr><td>
+            <i class="fas fa-edit" id="alterar-${dado.id}"></i>
+            <i class="fas fa-times" id="excluir-${dado.id}"></i>
+            </td>`; */
+        tabela+=`<tr>`;
         Object.keys(dado).map(valor =>{
             switch(valor){
                 case "id":
+                case "fk_embarcacao":
+                case "fk_empresa":
+                case "fk_usuario":
                     break;
                 case "data_nasc":
                     tabela+=`<td>${formatarData(dado[valor])}</td>`;
+                    break;
+                case "data_aluguel":
+                    tabela+=`<td>${formatarData(dado[valor], true)}</td>`;
                     break;
                 case "altoAcesso":
                     if(dado[valor] == 1){
@@ -255,8 +345,15 @@ function gerarTabela (dados, cabecalhos){
                         tabela+=`<td></td>`;
                     }
                     break;
+                case "valor":
+                    tabela+=`<td>R$${dado[valor].toFixed(2).replace(".",",")}</td>`;
+                    break;
                 default:
-                    tabela+=`<td>${dado[valor]}</td>`;
+                    if(!dado[valor]){
+                        tabela+=`<td>--</td>`;
+                    } else{
+                        tabela+=`<td>${dado[valor]}</td>`;
+                    }
                     break;
             }
         });
@@ -264,4 +361,36 @@ function gerarTabela (dados, cabecalhos){
     });
     tabela+="</tbody>";
     return tabela;
+}
+
+
+//Cria o corpo do modal e exibe-o na página
+function gerarModal(lista, i, cabecalhos, fotos=[]){
+    let modalBody="";
+    //Inserir campos que não são imagens
+    Object.keys(cabecalhos).map(objeto =>{
+        let objetoValor = lista[i][objeto];
+        switch(objeto){
+            case "data":
+            case "validade":
+                objetoValor = formatarData(lista[i][objeto]);
+                break;
+            case "valor":
+                objetoValor = `R$${lista[i][objeto].toFixed(2).replace(".",",")}`;
+                break;
+        }
+        modalBody += `<b>${cabecalhos[objeto]}:</b> ${objetoValor}<br>`;
+    });
+    //Inserir imagens
+    if(fotos.length > 0){
+        modalBody += `<p><b>Fotos:</b></p><div class="row">`;
+        fotos.forEach(foto =>{
+            let fotoSplit = `${lista[i][foto]}`.split(".");
+            modalBody += `<img class="img-anexo" src="data:${fotoSplit[1]};base64, ${fotoSplit[0]}">`;
+        });
+        modalBody += `</div>`;
+    }
+    //Exibir modal
+    document.querySelector(".modal-body").innerHTML = modalBody;
+    $('.modal').modal('show');
 }

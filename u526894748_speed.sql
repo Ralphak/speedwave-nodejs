@@ -2,8 +2,8 @@
 -- version 4.8.4
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost:3306
--- Tempo de geração: 17/12/2018 às 22:02
+-- Host: 127.0.0.1
+-- Tempo de geração: 20/12/2018 às 02:50
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -31,12 +31,30 @@ SET time_zone = "+00:00";
 CREATE TABLE `alugalancha` (
   `id` int(11) NOT NULL,
   `fk_usuario` int(11) DEFAULT NULL,
-  `fk_embarcacao` int(11) DEFAULT NULL,
-  `fk_empresa` int(11) DEFAULT NULL,
-  `data_aluguel` date DEFAULT NULL,
+  `fk_embarcacao` int(11) NOT NULL,
+  `fk_empresa` int(11) NOT NULL,
+  `data_aluguel` datetime DEFAULT NULL,
   `valor` double DEFAULT NULL,
-  `status` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL
+  `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para view `alugalancha_empresa`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `alugalancha_empresa` (
+`id` int(11)
+,`fk_embarcacao` int(11)
+,`nome_embarcacao` varchar(255)
+,`fk_empresa` int(11)
+,`fk_usuario` int(11)
+,`comprador` varchar(255)
+,`data_aluguel` datetime
+,`valor` double
+,`status` varchar(10)
+);
 
 -- --------------------------------------------------------
 
@@ -46,12 +64,29 @@ CREATE TABLE `alugalancha` (
 
 CREATE TABLE `aluguelbarco` (
   `id` int(11) NOT NULL,
-  `fk_embarcacao` int(11) DEFAULT NULL,
-  `fk_empresa` int(11) DEFAULT NULL,
-  `data_aluguel` date DEFAULT NULL,
+  `fk_embarcacao` int(11) NOT NULL,
+  `fk_empresa` int(11) NOT NULL,
+  `data_aluguel` datetime DEFAULT NULL,
   `valor` double DEFAULT NULL,
-  `status` varchar(10) COLLATE utf8_unicode_ci DEFAULT NULL
+  `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para view `aluguelbarco_empresa`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `aluguelbarco_empresa` (
+`id` int(11)
+,`fk_embarcacao` int(11)
+,`nome_embarcacao` varchar(255)
+,`qtd_passageiros` int(5)
+,`fk_empresa` int(11)
+,`data_aluguel` datetime
+,`valor` double
+,`status` varchar(10)
+);
 
 -- --------------------------------------------------------
 
@@ -65,7 +100,8 @@ CREATE TABLE `bancoempbarco` (
   `cpf` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL,
   `banco` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `agencia` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `conta` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `conta` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `titular` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -81,8 +117,8 @@ CREATE TABLE `embarcacao` (
   `numero` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `data` date NOT NULL,
   `validade` date NOT NULL,
-  `capacidade` int(5) NOT NULL,
-  `qtd_tripulantes` int(10) NOT NULL,
+  `qtd_passageiros` int(5) NOT NULL,
+  `qtd_tripulantes` int(5) NOT NULL,
   `atividade` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `area_nav` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
@@ -103,7 +139,6 @@ CREATE TABLE `empresabarco` (
   `razao` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cnpj` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `info` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `titular` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `data_inicio` date DEFAULT NULL,
   `telefone` varchar(30) COLLATE utf8_unicode_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -157,7 +192,7 @@ CREATE TABLE `fotoembar` (
   `fk_embar` int(11) NOT NULL,
   `proa` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `popa` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `través` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
+  `traves` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `interior1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `interior2` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `interior3` longtext COLLATE utf8_unicode_ci DEFAULT NULL
@@ -216,6 +251,22 @@ CREATE TABLE `socio` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura stand-in para view `socio_login`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `socio_login` (
+`id` int(11)
+,`id_socio` int(11)
+,`cpf` varchar(20)
+,`senha` varchar(255)
+,`altoAcesso` tinyint(1)
+,`razao` varchar(255)
+,`nome` varchar(255)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `triplancha`
 --
 
@@ -256,6 +307,33 @@ CREATE TABLE `usuario` (
   `telefone` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `telefone2` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para view `alugalancha_empresa`
+--
+DROP TABLE IF EXISTS `alugalancha_empresa`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `alugalancha_empresa`  AS  select `alugalancha`.`id` AS `id`,`alugalancha`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`alugalancha`.`fk_empresa` AS `fk_empresa`,`alugalancha`.`fk_usuario` AS `fk_usuario`,`usuario`.`nome` AS `comprador`,`alugalancha`.`data_aluguel` AS `data_aluguel`,`alugalancha`.`valor` AS `valor`,`alugalancha`.`status` AS `status` from ((`alugalancha` join `embarcacao` on(`alugalancha`.`fk_embarcacao` = `embarcacao`.`id`)) left join `usuario` on(`alugalancha`.`fk_usuario` = `usuario`.`id`)) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para view `aluguelbarco_empresa`
+--
+DROP TABLE IF EXISTS `aluguelbarco_empresa`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_empresa`  AS  select `aluguelbarco`.`id` AS `id`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`qtd_passageiros` AS `qtd_passageiros`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`aluguelbarco`.`data_aluguel` AS `data_aluguel`,`aluguelbarco`.`valor` AS `valor`,`aluguelbarco`.`status` AS `status` from (`aluguelbarco` join `embarcacao`) where `aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para view `socio_login`
+--
+DROP TABLE IF EXISTS `socio_login`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `socio_login`  AS  select `empresabarco`.`id` AS `id`,`socio`.`id` AS `id_socio`,`socio`.`cpf` AS `cpf`,`socio`.`senha` AS `senha`,`socio`.`altoAcesso` AS `altoAcesso`,`empresabarco`.`razao` AS `razao`,`socio`.`nome` AS `nome` from (`socio` join `empresabarco`) where `socio`.`fk_empresa` = `empresabarco`.`id` ;
 
 --
 -- Índices de tabelas apagadas

@@ -25,7 +25,7 @@ router.get('/api/buscar/:tabela', (req, res)=>{
     });
 });
     
-//Inclui um formulário no banco de dados. Método geral.
+//Inclui um formulário no banco de dados (método geral). Suporta ?redirect=
 router.post('/api/incluir/:tabela', (req, res)=>{
     if(req.body.senha){
         req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
@@ -36,7 +36,11 @@ router.post('/api/incluir/:tabela', (req, res)=>{
             return;
         }
         //console.log("Linhas afetadas: " + results.affectedRows);
-        res.redirect('/#sucesso');
+        if(req.query.redirect){
+            res.redirect('/#'+req.query.redirect);
+        } else{
+            res.redirect('/#sucesso');
+        }        
     });
 });
 
@@ -47,7 +51,6 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             razao : req.body.razao, 
             cnpj : req.body.cnpj, 
             info : req.body.info, 
-            titular : req.body.titular, 
             data_inicio : req.body.data_inicio, 
             telefone : req.body.telefone, 
             email : req.body.email, 
@@ -63,6 +66,7 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             pais : req.body.pais
         }, 
         dadosPagamento = {
+            titular : req.body.titular, 
             cpf : req.body.cpf, 
             banco : req.body.banco, 
             agencia : req.body.agencia, 
@@ -118,7 +122,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             numero : req.body.numero, 
             data : req.body.data, 
             validade : req.body.validade, 
-            capacidade : req.body.capacidade, 
+            qtd_passageiros : req.body.qtd_passageiros, 
             qtd_tripulantes : req.body.qtd_tripulantes, 
             atividade : req.body.atividade,
             area_nav : req.body.area_nav,
@@ -129,7 +133,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
         }, fotosEmbarcacao = {
             proa : req.files.proa.data.toString("base64")+'.'+req.files.proa.mimetype, 
             popa : req.files.popa.data.toString("base64")+'.'+req.files.popa.mimetype, 
-            través : req.files.través.data.toString("base64")+'.'+req.files.través.mimetype, 
+            traves : req.files.traves.data.toString("base64")+'.'+req.files.traves.mimetype, 
             interior1 : req.files.interior1.data.toString("base64")+'.'+req.files.interior1.mimetype, 
             interior2 : req.files.interior2.data.toString("base64")+'.'+req.files.interior2.mimetype, 
             interior3 : req.files.interior3.data.toString("base64")+'.'+req.files.interior3.mimetype
@@ -170,23 +174,8 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
 
 //Requisição de login.
 router.post('/api/login', (req, res)=>{
-    let tabela, chave;
     vinculoUsuario = req.body.vinculo;
-    switch(vinculoUsuario){
-        case "empresa":
-            tabela="empresabarco";
-            chave="cnpj";
-            break;
-        case "socio":
-            tabela="socio";
-            chave="cpf";
-            break;
-        default:
-            tabela="usuario";
-            chave="login";
-            break;
-    }
-    new loginAPI(tabela, chave).passport.authenticate('local', {
+    loginAPI.authenticate(vinculoUsuario, {
         failureFlash : true,
         failureRedirect : '/#login',
         successRedirect : req.body.redirect_url
