@@ -28,7 +28,7 @@ router.get('/api/buscar/:tabela', (req, res)=>{
 //Inclui um formulário no banco de dados (método geral). Suporta ?redirect=
 router.post('/api/incluir/:tabela', (req, res)=>{
     if(req.body.senha){
-        req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+        //req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
     }
     mysql.query("insert into " + req.params.tabela + " set ?", req.body, (err, results)=>{
         if(err){
@@ -46,7 +46,7 @@ router.post('/api/incluir/:tabela', (req, res)=>{
 
 //Inclui um cadastro de empresa no banco de dados.
 router.post('/api/cadastrar/empresa', (req, res)=>{
-    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    //req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
     let dadosEmpresa = {
             razao : req.body.razao, 
             cnpj : req.body.cnpj, 
@@ -174,7 +174,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
 
 //Inclui um cadastro de cliente no banco de dados.
 router.post('/api/cadastrar/cliente', (req, res)=>{
-    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    //req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
     let dadosCliente = {
             nome : req.body.nome, 
             cpf : req.body.cpf, 

@@ -229,13 +229,13 @@ function carregarPagina(pagina){
                     document.getElementById("area-cliente").removeAttribute("hidden");
                     //Obtenção dos serviços do banco de dados
                     if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
-                        ?colunas=alugalancha.*, embarcacao.nome, fotoembar.traves
+                        ?colunas=alugalancha.*, embarcacao.nome, embarcacao.cidade, fotoembar.traves
                         &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
                         join fotoembar on fk_embarcacao=fotoembar.fk_embar 
                         where status="Ativo"
                     `);
                     if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco
-                        ?colunas=aluguelbarco.*, embarcacao.nome, fotoembar.traves
+                        ?colunas=aluguelbarco.*, embarcacao.nome, embarcacao.cidade, fotoembar.traves
                         &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
                         join fotoembar on fk_embarcacao=fotoembar.fk_embar 
                         where status="Ativo"
@@ -400,20 +400,22 @@ function gerarCards(divID, lista, campoFoto){
     document.getElementById(divID).innerHTML = "";
     for(let i=0; i<lista.length; i++){
         let extensao = `${lista[i][campoFoto]}`.split("."),
-            descricao;
+            titulo, descricao;
         switch(divID){
             case "cards-barcos":
+                titulo = lista[i].nome;
                 descricao = lista[i].categoria;
                 break;
             case "cards-alugueis":
             case "cards-passeios":
-                descricao = `${formatarMoeda(lista[i].valor)}<br>${formatarData(lista[i].data_aluguel, true)}`;
+                titulo = `${lista[i].nome}<br>${formatarMoeda(lista[i].valor)}`;
+                descricao = `${lista[i].cidade}<br>${formatarData(lista[i].data_aluguel, true)}`;
                 break;
         }
         document.getElementById(divID).insertAdjacentHTML("beforeend", `
             <div class="card m-1" id="${i}">
                 <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
-                <p class="card-text text-center">${lista[i].nome}<br><small class="text-muted">${descricao}</small></p>
+                <p class="card-text text-center">${titulo}<br><small class="text-muted">${descricao}</small></p>
             </div>
         `);
     }
