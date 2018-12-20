@@ -181,6 +181,7 @@ router.post('/api/cadastrar/cliente', (req, res)=>{
             email : req.body.email,
             telefone : req.body.telefone, 
             telefone2 : req.body.telefone2, 
+            data_nasc : req.body.data_nasc, 
             login : req.body.login,
             senha : req.body.senha,
         }, 

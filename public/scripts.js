@@ -15,15 +15,15 @@ document.addEventListener("DOMContentLoaded", async function(){
             //Insere a razão social no menu
             menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
             //Itens do menu
-            menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
-            <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
-            <a class="dropdown-item" href="#lista-servicos">Meus Serviços</a>
-            `);
             if(usuario.vinculo=="empresa"){
                 menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
-                <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
+                    <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
                 `);
             }
+            menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
+                <a class="dropdown-item" href="#lista-servicos">Meus Serviços</a>
+            `);
         } else{
             //Insere o nome no menu
             menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.nome;
@@ -136,16 +136,7 @@ function carregarPagina(pagina){
                     break;
                 }
                 //Insere o código HTML para cada card
-                document.getElementById("cards-barcos").innerHTML = "";
-                for(let i=0; i<listaBarcos.length; i++){
-                    let extensao = `${listaBarcos[i].traves}`.split(".");
-                    document.getElementById("cards-barcos").insertAdjacentHTML("beforeend", `
-                        <div class="card m-1" id="${i}">
-                            <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
-                            <p class="card-text text-center">${listaBarcos[i].nome}<br><small class="text-muted">${listaBarcos[i].categoria}</small></p>
-                        </div>
-                    `);
-                }
+                gerarCards("cards-barcos", listaBarcos, "traves");
                 //Cria um modal quando um dos cards é clicado
                 document.querySelectorAll(".card").forEach(card =>{
                     card.addEventListener("click", (e)=>{
@@ -179,17 +170,17 @@ function carregarPagina(pagina){
                 break;
 
             case "lista-servicos":
-                //Tabela de aluguéis
                 if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha_empresa
                     ?filtro=where fk_empresa=${usuario.id}
                     order by data_aluguel`);
+                if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
+                    ?filtro=where fk_empresa=${usuario.id}
+                    order by data_aluguel`);
+                //Tabela de aluguéis
                 let cabecalhosAlugueis = ["Embarcação","Comprador","Data do Evento","Preço unitário","Status"];
                 document.getElementById("tabela-alugueis").innerHTML = gerarTabela(listaAlugueis, cabecalhosAlugueis);
                 $("#tabela-alugueis").DataTable();
                 //Tabela de passeios
-                if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
-                    ?filtro=where fk_empresa=${usuario.id}
-                    order by data_aluguel`);
                 let cabecalhosPasseios = ["Embarcação","Passageiros","Data do Evento","Preço unitário","Status"];
                 document.getElementById("tabela-passeios").innerHTML = gerarTabela(listaPasseios, cabecalhosPasseios);
                 $("#tabela-passeios").DataTable();
@@ -234,6 +225,34 @@ function carregarPagina(pagina){
 
             case "pagina-inicial":
                 $('.carousel').carousel()
+                if(!usuario || usuario.vinculo=="cliente"){
+                    document.getElementById("area-cliente").removeAttribute("hidden");
+                    //Obtenção dos serviços do banco de dados
+                    if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
+                        ?colunas=alugalancha.*, embarcacao.nome, fotoembar.traves
+                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
+                        join fotoembar on fk_embarcacao=fotoembar.fk_embar 
+                        where status="Ativo"
+                    `);
+                    if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco
+                        ?colunas=aluguelbarco.*, embarcacao.nome, fotoembar.traves
+                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
+                        join fotoembar on fk_embarcacao=fotoembar.fk_embar 
+                        where status="Ativo"
+                    `);
+                    //Exibição dos aluguéis
+                    if(listaAlugueis.length > 0){
+                        gerarCards("cards-alugueis", listaAlugueis, "traves");
+                    } else{
+                        document.getElementById("cards-alugueis").innerHTML = "<p>Nenhum aluguel disponível no momento.</p>"
+                    }
+                    //Exibição dos passeios
+                    if(listaPasseios.length > 0){
+                        gerarCards("cards-passeios", listaPasseios, "traves");
+                    } else{
+                        document.getElementById("cards-passeios").innerHTML = "<p>Nenhum passeio disponível no momento.</p>"
+                    }
+                }
                 break;
         }
     });
@@ -293,7 +312,7 @@ async function recuperarDados (url) {
     }).done(function(msg){
         dados = msg;
     }).fail(function(msg){
-        console.log("Erro no AJAX: " + msg.data);
+        console.log("AJAX " + msg.responseText);
     });
     return dados;
 };
@@ -304,9 +323,16 @@ function formatarData(stringData, hora=false){
     stringData = new Date(stringData);
     let data = `${stringData.getDate()}/${stringData.getMonth()+1}/${stringData.getFullYear()}`;
     if(hora){
-        data += ` ${stringData.getHours()}:${stringData.getMinutes()}`;
+        let hh = stringData.getHours() < 10 ? '0'+stringData.getHours() : stringData.getHours(),
+            mm = stringData.getMinutes() < 10 ? '0'+stringData.getMinutes() : stringData.getMinutes();
+        data += ` ${hh}:${mm}`;
     }
     return data;
+}
+
+//Formatação de moeda
+function formatarMoeda(stringMoeda){
+    return `R$${stringMoeda.toFixed(2).replace(".",",")}`;
 }
 
 
@@ -351,7 +377,7 @@ function gerarTabela (dados, cabecalhos){
                     }
                     break;
                 case "valor":
-                    tabela+=`<td>R$${dado[valor].toFixed(2).replace(".",",")}</td>`;
+                    tabela+=`<td>${formatarMoeda(dado[valor])}</td>`;
                     break;
                 default:
                     if(!dado[valor]){
@@ -369,6 +395,31 @@ function gerarTabela (dados, cabecalhos){
 }
 
 
+//Gera um grupo de cards e insere-o na página
+function gerarCards(divID, lista, campoFoto){
+    document.getElementById(divID).innerHTML = "";
+    for(let i=0; i<lista.length; i++){
+        let extensao = `${lista[i][campoFoto]}`.split("."),
+            descricao;
+        switch(divID){
+            case "cards-barcos":
+                descricao = lista[i].categoria;
+                break;
+            case "cards-alugueis":
+            case "cards-passeios":
+                descricao = `${formatarMoeda(lista[i].valor)}<br>${formatarData(lista[i].data_aluguel, true)}`;
+                break;
+        }
+        document.getElementById(divID).insertAdjacentHTML("beforeend", `
+            <div class="card m-1" id="${i}">
+                <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
+                <p class="card-text text-center">${lista[i].nome}<br><small class="text-muted">${descricao}</small></p>
+            </div>
+        `);
+    }
+}
+
+
 //Cria o corpo do modal e exibe-o na página
 function gerarModal(lista, i, cabecalhos, fotos=[]){
     let modalBody="";
@@ -381,7 +432,7 @@ function gerarModal(lista, i, cabecalhos, fotos=[]){
                 objetoValor = formatarData(lista[i][objeto]);
                 break;
             case "valor":
-                objetoValor = `R$${lista[i][objeto].toFixed(2).replace(".",",")}`;
+                objetoValor = formatarMoeda(lista[i][objeto]);
                 break;
         }
         modalBody += `<b>${cabecalhos[objeto]}:</b> ${objetoValor}<br>`;
