@@ -16,7 +16,9 @@
     <input name="conta" placeholder="Conta" type="number" min="0" max="9999999" required>
     <br><br>
     <label>Endereço</label><br>
-    <input name="rua" placeholder="Rua, nº e complemento" maxlength="255" required>
+    <input name="rua" placeholder="Rua" maxlength="255" required>
+    <input name="numero" placeholder="Número" type="number" min="0" max="99999" required>
+    <input name="complemento" placeholder="Complemento (opcional)" maxlength="255">
     <input name="cep" placeholder="CEP" maxlength="15" required>
     <input name="bairro" placeholder="Bairro" maxlength="50" required>
     <input name="cidade" placeholder="Cidade" maxlength="50" required>
@@ -29,7 +31,7 @@
     <input name="senha" placeholder="Senha" type="password" maxlength="255" required>
     <br><br>
     
-    <label><b>Anexar Documentação (imagem jpg ou png)</b></label>
+    <label><b>Anexar Documentação</b></label>
     <br>
     <label for="documento1">CNPJ: </label>
     <input name="documento1" type="file" required>

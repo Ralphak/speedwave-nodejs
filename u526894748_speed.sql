@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 20/12/2018 às 03:17
+-- Tempo de geração: 21/12/2018 às 11:54
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -79,10 +79,11 @@ CREATE TABLE `aluguelbarco` (
 --
 CREATE TABLE `aluguelbarco_empresa` (
 `id` int(11)
+,`fk_empresa` int(11)
 ,`fk_embarcacao` int(11)
 ,`nome_embarcacao` varchar(255)
-,`qtd_passageiros` int(5)
-,`fk_empresa` int(11)
+,`num_passageiros` bigint(21)
+,`max_passageiros` int(5)
 ,`data_aluguel` datetime
 ,`valor` double
 ,`status` varchar(10)
@@ -117,8 +118,8 @@ CREATE TABLE `embarcacao` (
   `numero` varchar(25) COLLATE utf8_unicode_ci NOT NULL,
   `data` date NOT NULL,
   `validade` date NOT NULL,
-  `qtd_passageiros` int(5) NOT NULL,
-  `qtd_tripulantes` int(5) NOT NULL,
+  `max_passageiros` int(5) NOT NULL,
+  `max_tripulantes` int(5) NOT NULL,
   `atividade` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `area_nav` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
@@ -140,7 +141,7 @@ CREATE TABLE `empresabarco` (
   `cnpj` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `info` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `data_inicio` date DEFAULT NULL,
-  `telefone` varchar(30) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `telefone` bigint(20) DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `documento1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -157,11 +158,13 @@ CREATE TABLE `endemp` (
   `id` int(11) NOT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cep` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `cep` int(8) DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
+  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `numero` int(5) DEFAULT NULL,
+  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -174,11 +177,13 @@ CREATE TABLE `endereco` (
   `id` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cep` varchar(15) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `cep` int(8) DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
+  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `numero` int(5) DEFAULT NULL,
+  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -201,6 +206,19 @@ CREATE TABLE `fotoembar` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `pagamentos`
+--
+
+CREATE TABLE `pagamentos` (
+  `id` int(11) NOT NULL,
+  `fk_empresa` int(11) NOT NULL,
+  `fk_usuario` int(11) NOT NULL,
+  `valor` double NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `passageiros`
 --
 
@@ -211,6 +229,14 @@ CREATE TABLE `passageiros` (
   `nome` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
   `cpf` varchar(25) COLLATE utf8_unicode_ci NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+--
+-- Gatilhos `passageiros`
+--
+DELIMITER $$
+CREATE TRIGGER `trigger_lotado` AFTER INSERT ON `passageiros` FOR EACH ROW UPDATE aluguelbarco JOIN aluguelbarco_empresa on aluguelbarco.id=aluguelbarco_empresa.id SET aluguelbarco.status='Lotado' WHERE (aluguelbarco.status='Ativo') AND (aluguelbarco_empresa.num_passageiros >= aluguelbarco_empresa.max_passageiros)
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -242,10 +268,12 @@ CREATE TABLE `socio` (
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cep` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `cep` int(8) DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
-  `altoAcesso` tinyint(1) DEFAULT NULL
+  `altoAcesso` tinyint(1) DEFAULT NULL,
+  `numero` int(5) DEFAULT NULL,
+  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -302,10 +330,10 @@ CREATE TABLE `usuario` (
   `login` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `caminho` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
+  `data_nasc` date DEFAULT NULL,
   `cpf` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `telefone` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `telefone2` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL
+  `telefone` bigint(20) DEFAULT NULL,
+  `telefone2` bigint(20) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -324,7 +352,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEF
 --
 DROP TABLE IF EXISTS `aluguelbarco_empresa`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_empresa`  AS  select `aluguelbarco`.`id` AS `id`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`qtd_passageiros` AS `qtd_passageiros`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`aluguelbarco`.`data_aluguel` AS `data_aluguel`,`aluguelbarco`.`valor` AS `valor`,`aluguelbarco`.`status` AS `status` from (`aluguelbarco` join `embarcacao`) where `aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_empresa`  AS  select `aluguelbarco`.`id` AS `id`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_passageiros`,`embarcacao`.`max_passageiros` AS `max_passageiros`,`aluguelbarco`.`data_aluguel` AS `data_aluguel`,`aluguelbarco`.`valor` AS `valor`,`aluguelbarco`.`status` AS `status` from ((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) left join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) group by `aluguelbarco`.`id` ;
 
 -- --------------------------------------------------------
 
@@ -396,6 +424,14 @@ ALTER TABLE `endereco`
 ALTER TABLE `fotoembar`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_embar` (`fk_embar`);
+
+--
+-- Índices de tabela `pagamentos`
+--
+ALTER TABLE `pagamentos`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_pag_empresa` (`fk_empresa`),
+  ADD KEY `fk_pag_usuario` (`fk_usuario`);
 
 --
 -- Índices de tabela `passageiros`
@@ -491,6 +527,12 @@ ALTER TABLE `fotoembar`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de tabela `pagamentos`
+--
+ALTER TABLE `pagamentos`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT de tabela `passageiros`
 --
 ALTER TABLE `passageiros`
@@ -576,6 +618,13 @@ ALTER TABLE `fotoembar`
   ADD CONSTRAINT `fk_foto_embar` FOREIGN KEY (`fk_embar`) REFERENCES `embarcacao` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
+-- Restrições para tabelas `pagamentos`
+--
+ALTER TABLE `pagamentos`
+  ADD CONSTRAINT `fk_pag_empresa` FOREIGN KEY (`fk_empresa`) REFERENCES `empresabarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_pag_usuario` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
 -- Restrições para tabelas `passageiros`
 --
 ALTER TABLE `passageiros`
@@ -604,6 +653,17 @@ ALTER TABLE `triplancha`
 --
 ALTER TABLE `tripulantes`
   ADD CONSTRAINT `fk_tripu_aluguelbarco` FOREIGN KEY (`fk_aluguelbarco`) REFERENCES `aluguelbarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+DELIMITER $$
+--
+-- Eventos
+--
+CREATE DEFINER=`u526894748_pic`@`127.0.0.1` EVENT `event_terminar_servicos` ON SCHEDULE EVERY 1 DAY STARTS '2018-12-21 05:24:02' ON COMPLETION PRESERVE ENABLE DO BEGIN
+UPDATE alugalancha SET status='Terminado' where (status NOT LIKE 'Terminado') AND (data_aluguel < CURRENT_DATE);
+UPDATE aluguelbarco SET status='Terminado' where (status NOT LIKE 'Terminado') AND (data_aluguel < CURRENT_DATE);
+END$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

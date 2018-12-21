@@ -1,11 +1,10 @@
-var usuario, linkAtivo, linkRedirect, listaAlugueis, listaBarcos, listaPasseios, listaSocios;
+var usuario, endereco, linkAtivo, linkRedirect, listaAlugueis, listaBarcos, listaPasseios, listaSocios, detalhesServico;
 
 
 //Eventos que devem ocorrer assim que o site é carregado
 document.addEventListener("DOMContentLoaded", async function(){
     //recuperar dados de usuário
     usuario = await recuperarDados("/api/dados/usuario");
-    console.log(usuario);
 
     //alterar menus com base no login, exibindo a página ao finalizar
     let menuUsuario = document.getElementById("menu-usuario");
@@ -66,6 +65,15 @@ function carregarPagina(pagina){
         pagina = pagina.replace("#", "");
     }
 
+    //Marcação do link ativo no menu
+    if(linkAtivo){
+        linkAtivo.classList.remove("active");
+    }
+    linkAtivo = document.querySelector(`a[href='${location.hash}']`);
+    if(linkAtivo){
+        linkAtivo.classList.add("active");
+    }
+
     //Carrega a página, adicionando parâmetros para páginas específicas
     $("#div-content").load(`${pagina}.html`, async()=>{
         switch(pagina){
@@ -75,7 +83,7 @@ function carregarPagina(pagina){
 
             case "cadastro-servico":
                 let embarcacoesServico = await recuperarDados(`/api/buscar/embarcacao
-                        ?colunas=id,nome,categoria,qtd_passageiros,qtd_tripulantes
+                        ?colunas=id,nome,categoria,max_passageiros,max_tripulantes
                         &filtro=where fk_empbarco=${usuario.id} order by nome`),
                     opcoesEmbarcacao = document.getElementsByName("fk_embarcacao")[0],
                     formServico = document.getElementById("form-servico");
@@ -94,7 +102,7 @@ function carregarPagina(pagina){
                         tipoServico = "Aluguel de "+embarcacao.categoria;
                     }
                     opcoesEmbarcacao.insertAdjacentHTML("beforeend", `
-                        <option value="${embarcacao.id}" data-categoria="${embarcacao.categoria}">${embarcacao.nome} - ${tipoServico} - ${embarcacao.qtd_passageiros} passageiros</option>
+                        <option value="${embarcacao.id}" data-categoria="${embarcacao.categoria}">${embarcacao.nome} - ${tipoServico} - ${embarcacao.max_passageiros} passageiros</option>
                     `);
                 });
                 formServico.removeAttribute("hidden");
@@ -125,6 +133,69 @@ function carregarPagina(pagina){
                 document.getElementsByName("fk_empresa")[0].value = usuario.id;
                 break;            
 
+            case "detalhes-pedido":
+                if(!detalhesServico){ 
+                    document.getElementById("exibicao-carregando").innerHTML = "Por favor clique em Voltar e tente novamente."
+                    break;
+                }
+                let apiGetnet = document.getElementById("api-getnet").dataset,
+                    apiToken = await recuperarDados("/getnet/autenticar"),
+                    orderID = await recuperarDados("/api/buscar/pagamentos?colunas=max(id) as id"),
+                    nomeSplit = usuario.nome.split(" ", 2);
+                if(!endereco) endereco = await recuperarDados(`/api/buscar/endereco?filtro=where fk_usuario=${usuario.id}`);
+                orderID = orderID ? orderID[0].id + 1 : 1;
+                //Valores iniciais
+                apiGetnet.getnetToken = `${apiToken.token_type} ${apiToken.access_token}`;
+                apiGetnet.getnetCustomerid = usuario.id;
+                apiGetnet.getnetOrderid = orderID;
+                apiGetnet.getnetCustomerAddressCity = endereco[0].cidade;
+                apiGetnet.getnetCustomerAddressComplementary = endereco[0].complemento;
+                apiGetnet.getnetCustomerAddressNeighborhood = endereco[0].bairro;
+                apiGetnet.getnetCustomerAddressState = endereco[0].estado;
+                apiGetnet.getnetCustomerAddressStreet = endereco[0].rua;
+                apiGetnet.getnetCustomerAddressStreetNumber = endereco[0].numero;
+                apiGetnet.getnetCustomerAddressZipcode = endereco[0].cep;
+                apiGetnet.getnetCustomerCountry = endereco[0].pais;
+                apiGetnet.getnetCustomerDocumentNumber = usuario.cpf;
+                apiGetnet.getnetCustomerEmail = usuario.email;
+                apiGetnet.getnetCustomerFirstName = nomeSplit[0];
+                apiGetnet.getnetCustomerLastName = nomeSplit[1];
+                apiGetnet.getnetCustomerPhoneNumber = usuario.telefone;
+                //Detalhes do Pedido
+                document.getElementById("servico-nome").innerHTML = detalhesServico.nome;
+                document.getElementById("servico-preco").innerHTML = formatarMoeda(detalhesServico.valor);
+                document.getElementById("servico-local").innerHTML = detalhesServico.cidade;
+                document.getElementById("servico-data").innerHTML = formatarData(detalhesServico.data_aluguel, true);
+                document.getElementById("servico-comprador").innerHTML = usuario.nome;
+                document.getElementById("servico-endereco").innerHTML = `${endereco[0].rua} ${endereco[0].numero} ${endereco[0].complemento} ${endereco[0].bairro} ${endereco[0].cidade} ${endereco[0].estado} ${endereco[0].pais}`;
+                //Construção do formulário
+                document.getElementsByName("tipo_embarcacao")[0].value = detalhesServico.categoria;
+                document.getElementsByName("id_pagamento")[0].value = orderID;
+                document.getElementsByName("id_servico")[0].value = detalhesServico.id;
+                document.getElementsByName("id_empresa")[0].value = detalhesServico.fk_empresa;
+                document.getElementsByName("id_usuario")[0].value = usuario.id;
+                if(detalhesServico.categoria == "Barco"){
+                    document.getElementById("form-pedido").insertAdjacentHTML("beforeend", `
+                        <label for="qtd_passageiros">Nº de Pessoas: </label>
+                        <input name="qtd_passageiros" type="number" min=1 max=${detalhesServico.max_passageiros}>
+                        Máximo de ${detalhesServico.max_passageiros}<br>
+                        <b>Preço Total: </b>R$<span id="servico-preco-total">${detalhesServico.valor}</span><br><br>
+                    `);
+                    document.getElementsByName("qtd_passageiros")[0].addEventListener("change", (e)=>{
+                        let precoTotal = detalhesServico.valor * e.currentTarget.value;
+                        document.getElementById("servico-preco-total").innerHTML = precoTotal;
+                        apiGetnet.getnetAmount = precoTotal.toFixed(2);
+                        apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${precoTotal.toFixed(2)}, "quantity": ${e.currentTarget.value},"sku": ""}]`;
+                    });
+                } else{
+                    apiGetnet.getnetAmount = detalhesServico.valor.toFixed(2);
+                    apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Aluguel de Lancha", "value": ${detalhesServico.valor.toFixed(2)}, "quantity": 1,"sku": ""}]`;
+                }  console.log(apiGetnet);
+                //Exibir a página
+                document.getElementById("exibicao-carregando").setAttribute("hidden","");
+                document.getElementById("exibicao-pedido").removeAttribute("hidden");
+                break;            
+
             case "lista-embarcacoes":
                 if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao?filtro=
                     join fotoembar on embarcacao.id=fotoembar.fk_embar 
@@ -146,8 +217,8 @@ function carregarPagina(pagina){
                             numero: "Número",
                             data: "Data de Registro",
                             validade: "Validade do Documento",
-                            qtd_passageiros: "Passageiros",
-                            qtd_tripulantes: "Tripulantes",
+                            max_passageiros: "Passageiros",
+                            max_tripulantes: "Tripulantes",
                             atividade: "Atividade",
                             area_nav: "Área de Navegação",
                             cidade: "Cidade",
@@ -172,10 +243,10 @@ function carregarPagina(pagina){
             case "lista-servicos":
                 if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha_empresa
                     ?filtro=where fk_empresa=${usuario.id}
-                    order by data_aluguel`);
+                    order by data_aluguel desc`);
                 if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
                     ?filtro=where fk_empresa=${usuario.id}
-                    order by data_aluguel`);
+                    order by data_aluguel desc`);
                 //Tabela de aluguéis
                 let cabecalhosAlugueis = ["Embarcação","Comprador","Data do Evento","Preço unitário","Status"];
                 document.getElementById("tabela-alugueis").innerHTML = gerarTabela(listaAlugueis, cabecalhosAlugueis);
@@ -199,7 +270,7 @@ function carregarPagina(pagina){
                 let flash = await recuperarDados("/api/dados/flash"),
                     labelLogin = document.getElementById("label-login"),
                     linkCadastro = document.getElementById("link-cadastro");
-                if(linkRedirect){
+                if(linkRedirect && linkRedirect != "/#detalhes-pedido"){
                     document.getElementsByName("redirect_url")[0].value = linkRedirect;
                 }
                 if(flash){
@@ -229,43 +300,44 @@ function carregarPagina(pagina){
                     document.getElementById("area-cliente").removeAttribute("hidden");
                     //Obtenção dos serviços do banco de dados
                     if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
-                        ?colunas=alugalancha.*, embarcacao.nome, embarcacao.cidade, fotoembar.traves
+                        ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, fotoembar.traves
                         &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
                         join fotoembar on fk_embarcacao=fotoembar.fk_embar 
                         where status="Ativo"
                     `);
                     if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco
-                        ?colunas=aluguelbarco.*, embarcacao.nome, embarcacao.cidade, fotoembar.traves
+                        ?colunas=aluguelbarco.*, embarcacao.nome, embarcacao.categoria, embarcacao.max_passageiros, embarcacao.cidade, fotoembar.traves
                         &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
                         join fotoembar on fk_embarcacao=fotoembar.fk_embar 
                         where status="Ativo"
                     `);
                     //Exibição dos aluguéis
                     if(listaAlugueis.length > 0){
-                        gerarCards("cards-alugueis", listaAlugueis, "traves");
+                        gerarCards("cards-alugueis", listaAlugueis, "traves", "detalhes-pedido");
                     } else{
                         document.getElementById("cards-alugueis").innerHTML = "<p>Nenhum aluguel disponível no momento.</p>"
                     }
                     //Exibição dos passeios
                     if(listaPasseios.length > 0){
-                        gerarCards("cards-passeios", listaPasseios, "traves");
+                        gerarCards("cards-passeios", listaPasseios, "traves", "detalhes-pedido");
                     } else{
                         document.getElementById("cards-passeios").innerHTML = "<p>Nenhum passeio disponível no momento.</p>"
                     }
+                    //Ir para a compra ao clicar no card
+                    document.getElementById("cards-alugueis").querySelectorAll(".card").forEach(card =>{
+                        card.addEventListener("click", (e)=>{
+                            detalhesServico = listaAlugueis[e.currentTarget.id];
+                        });
+                    });
+                    document.getElementById("cards-passeios").querySelectorAll(".card").forEach(card =>{
+                        card.addEventListener("click", (e)=>{
+                            detalhesServico = listaPasseios[e.currentTarget.id];
+                        });
+                    });
                 }
                 break;
         }
     });
-
-    //Marcação do link ativo no menu
-    if(linkAtivo){
-        linkAtivo.classList.remove("active");
-    }
-    linkAtivo = document.querySelector(`a[href='${location.hash}']`);
-    if(linkAtivo){
-        linkAtivo.classList.add("active");
-    }
-    
 }
 
 
@@ -286,6 +358,13 @@ function permitirAcesso(pagina){
         case "#lista-socios":
         case "#cadastro-socio":
             if(!usuario || usuario.vinculo!="empresa"){
+                return false;
+            }
+            break;
+            
+        //Permissões somente para cliente
+        case "#detalhes-pedido":
+            if(!usuario || usuario.vinculo!="cliente"){
                 return false;
             }
             break;
@@ -362,6 +441,7 @@ function gerarTabela (dados, cabecalhos){
                 case "fk_embarcacao":
                 case "fk_empresa":
                 case "fk_usuario":
+                case "max_passageiros":
                     break;
                 case "data_nasc":
                     tabela+=`<td>${formatarData(dado[valor])}</td>`;
@@ -378,6 +458,9 @@ function gerarTabela (dados, cabecalhos){
                     break;
                 case "valor":
                     tabela+=`<td>${formatarMoeda(dado[valor])}</td>`;
+                    break;
+                case "num_passageiros":
+                    tabela+=`<td>${dado.num_passageiros} de ${dado.max_passageiros}</td>`;
                     break;
                 default:
                     if(!dado[valor]){
@@ -396,7 +479,7 @@ function gerarTabela (dados, cabecalhos){
 
 
 //Gera um grupo de cards e insere-o na página
-function gerarCards(divID, lista, campoFoto){
+function gerarCards(divID, lista, campoFoto, link){
     document.getElementById(divID).innerHTML = "";
     for(let i=0; i<lista.length; i++){
         let extensao = `${lista[i][campoFoto]}`.split("."),
@@ -412,11 +495,14 @@ function gerarCards(divID, lista, campoFoto){
                 descricao = `${lista[i].cidade}<br>${formatarData(lista[i].data_aluguel, true)}`;
                 break;
         }
+        if(link){
+            link = `href=/#${link}`;
+        }
         document.getElementById(divID).insertAdjacentHTML("beforeend", `
-            <div class="card m-1" id="${i}">
+            <a ${link}><div class="card m-1" id="${i}">
                 <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
                 <p class="card-text text-center">${titulo}<br><small class="text-muted">${descricao}</small></p>
-            </div>
+            </div></a>
         `);
     }
 }

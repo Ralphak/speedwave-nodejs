@@ -2,7 +2,8 @@ const express = require("express"),
     router = express.Router(),
     mysql = require("./mysql.js"),
     loginAPI = require("./login-api.js"),
-    crypto = require("crypto");
+    crypto = require("crypto"),
+    getnet = require("./client-oauth2");
     
 var vinculoUsuario;
 
@@ -59,6 +60,8 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
         }, 
         dadosEndereco = {
             rua : req.body.rua, 
+            numero : req.body.numero, 
+            complemento : req.body.complemento, 
             cep : req.body.cep, 
             bairro : req.body.bairro, 
             cidade : req.body.cidade, 
@@ -122,8 +125,8 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             numero : req.body.numero, 
             data : req.body.data, 
             validade : req.body.validade, 
-            qtd_passageiros : req.body.qtd_passageiros, 
-            qtd_tripulantes : req.body.qtd_tripulantes, 
+            max_passageiros : req.body.max_passageiros, 
+            max_tripulantes : req.body.max_tripulantes, 
             atividade : req.body.atividade,
             area_nav : req.body.area_nav,
             cidade : req.body.cidade,
@@ -187,6 +190,8 @@ router.post('/api/cadastrar/cliente', (req, res)=>{
         }, 
         dadosEndereco = {
             rua : req.body.rua, 
+            numero : req.body.numero, 
+            complemento : req.body.complemento, 
             cep : req.body.cep, 
             bairro : req.body.bairro, 
             cidade : req.body.cidade, 
@@ -257,8 +262,17 @@ router.get('/api/dados/:dados', (req, res)=>{
     }
 });
 
-router.post('/api/teste', (req, res)=>{
-    res.send(req.body);
+//Autenticação do e-commerce na Getnet
+router.get('/getnet/autenticar', (req, res)=>{
+    getnet.credentials.getToken().then(user =>{
+        res.json(user.data);
+    });
+});
+
+//Registro de compra pelo e-commerce da Getnet
+router.post('/getnet/registrar', (req, res)=>{
+    //TODO: Transaction MySQL para inserir os pagamentos
+    res.json(req.body);
 });
 
 module.exports = router;

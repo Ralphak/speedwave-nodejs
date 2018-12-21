@@ -1,0 +1,56 @@
+<a href="/#">Voltar</a>
+<p id="exibicao-carregando">Carregando...</p>
+<div id="exibicao-pedido" hidden>
+    <h3>Detalhes do Pedido</h3>
+    <b>Embarcação: </b><span id="servico-nome"></span><br>
+    <b>Preço Unitário: </b><span id="servico-preco"></span><br>
+    <b>Local: </b><span id="servico-local"></span><br>
+    <b>Data e Hora: </b><span id="servico-data"></span><br>
+    <br>
+    <b>Comprador: </b><span id="servico-comprador"></span><br>
+    <b>Endereço: </b><span id="servico-endereco"></span><br>
+    <br>
+    <form method="post" id="form-pedido" action="/getnet/registrar">
+        <input name="tipo_embarcacao" hidden readonly>
+        <input name="id_pagamento" hidden readonly>
+        <input name="id_servico" hidden readonly>
+        <input name="id_empresa" hidden readonly>
+        <input name="id_usuario" hidden readonly>
+    </form>
+    <button class="btn btn-primary pay-button-getnet">Pagar</button>
+</div>
+
+<!-- API da Getnet -->
+<script id="api-getnet" async src="https://checkout-homologacao.getnet.com.br/loader.js"
+  data-getnet-sellerid="da182e0a-33d1-4191-a02e-e39546e1fe39"
+  data-getnet-token="VALOR RETORNADO PELA API DE AUTENTICAÇÃO"
+  data-getnet-amount=""
+  data-getnet-customerid=""
+  data-getnet-orderid=""
+  data-getnet-button-class="pay-button-getnet"
+  data-getnet-installments="6"
+  data-getnet-customer-first-name=""
+  data-getnet-customer-last-name=""
+  data-getnet-customer-document-type="CPF"
+  data-getnet-customer-document-number=""
+  data-getnet-customer-email=""
+  data-getnet-customer-phone-number=""
+  data-getnet-customer-address-street=""
+  data-getnet-customer-address-street-number=""
+  data-getnet-customer-address-complementary=""
+  data-getnet-customer-address-neighborhood=""
+  data-getnet-customer-address-city=""
+  data-getnet-customer-address-state=""
+  data-getnet-customer-address-zipcode=""
+  data-getnet-customer-country=""
+  data-getnet-items='[{"name": "","description": "", "value": 0, "quantity": 0,"sku": ""}]'
+  data-getnet-url-callback=""
+  data-getnet-pre-authorization-credit="">
+    getnet.subscribe('success', function() {
+        document.getElementById("form-pedido").submit();
+    });
+    getnet.subscribe('error', function(status, response) {
+        console.log(status);
+        console.log(response);
+    });
+</script>
