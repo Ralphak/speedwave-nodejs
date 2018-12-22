@@ -132,7 +132,8 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             cidade : req.body.cidade,
             fk_empbarco : req.body.fk_empbarco,
             valor: req.body.valor,
-            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype
+            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype,
+            documento2 : req.files.documento2.data.toString("base64")+'.'+req.files.documento1.mimetype
         }, fotosEmbarcacao = {
             proa : req.files.proa.data.toString("base64")+'.'+req.files.proa.mimetype, 
             popa : req.files.popa.data.toString("base64")+'.'+req.files.popa.mimetype, 
@@ -271,7 +272,7 @@ router.get('/getnet/autenticar', (req, res)=>{
 
 //Registro de compra pelo e-commerce da Getnet
 router.get('/getnet/registrar', (req, res)=>{
-    let bitmask = req.query.bitmask.split(","),
+    let bitmask = req.query.bitmask.split(","), nomes,
         dadosTransacao = {
             id : bitmask[1],
             fk_empresa : bitmask[2],
@@ -280,8 +281,8 @@ router.get('/getnet/registrar', (req, res)=>{
             data_pagamento : new Date()
         };
     if(bitmask[0] == 0){
-        let nomes = req.query.nome.split(",")
-        nomes.pop();
+        nomes = req.query.nome.split(",")
+        nomes.pop(); //retira o campo em branco no final do array
     }
     mysql.getConnection((err, conn)=>{
         if(err){
@@ -311,13 +312,6 @@ router.get('/getnet/registrar', (req, res)=>{
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
-                            conn.commit((err)=>{
-                                if(err){
-                                    conn.rollback(()=>{res.send(err.stack);});
-                                    return;
-                                }
-                                res.redirect('/#sucesso');
-                            });
                         });
                     });
                 } else{ //Aluguel de lancha
@@ -327,15 +321,15 @@ router.get('/getnet/registrar', (req, res)=>{
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
-                        conn.commit((err)=>{
-                            if(err){
-                                conn.rollback(()=>{res.send(err.stack);});
-                                return;
-                            }
-                            res.redirect('/#sucesso');
-                        });
                     });
                 }
+                conn.commit((err)=>{
+                    if(err){
+                        conn.rollback(()=>{res.send(err.stack);});
+                        return;
+                    }
+                    res.redirect('/#sucesso');
+                });
             });
         });
     });
