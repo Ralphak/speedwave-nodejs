@@ -1,4 +1,4 @@
-var usuario, endereco, linkAtivo, linkRedirect, listaAlugueis, listaBarcos, listaPasseios, listaSocios, detalhesServico;
+var usuario, endereco, linkAtivo, linkRedirect, listaAlugueis, listaBarcos, listaExtrato, listaPasseios, listaSocios, detalhesServico;
 
 
 //Eventos que devem ocorrer assim que o site é carregado
@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async function(){
         if(usuario.vinculo=="empresa" || usuario.vinculo=="socio"){
             //Insere a razão social no menu
             menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.razao;
-            //Itens do menu
+            //Itens do menu (empresa)
             if(usuario.vinculo=="empresa"){
                 menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
                     <a class="dropdown-item" href="#lista-socios">Meus Sócios</a>
@@ -22,10 +22,15 @@ document.addEventListener("DOMContentLoaded", async function(){
             menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
                 <a class="dropdown-item" href="#lista-embarcacoes">Minhas Embarcações</a>
                 <a class="dropdown-item" href="#lista-servicos">Meus Serviços</a>
+                <a class="dropdown-item" href="#extrato">Extrato de Vendas</a>
             `);
         } else{
             //Insere o nome no menu
             menuUsuario.querySelector(".dropdown-toggle").innerHTML = usuario.nome;
+            //Itens do menu (cliente)
+            menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+                <a class="dropdown-item" href="#lista-servicos-cliente">Meus Serviços</a>
+            `);
         }
         menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
     } else{
@@ -215,7 +220,18 @@ function carregarPagina(pagina){
                 //Exibir a página
                 document.getElementById("exibicao-carregando").setAttribute("hidden","");
                 document.getElementById("exibicao-pedido").removeAttribute("hidden");
-                break;            
+                break;  
+                
+            case "extrato":
+                if(!listaExtrato) listaExtrato = await recuperarDados(`/api/buscar/extrato
+                    ?filtro=where fk_empresa=${usuario.id}
+                    order by data_pagamento desc`);
+                let cabecalhosExtrato = ["Valor Bruto","Data do Pagamento","Embarcação","Cliente"];
+                document.getElementById("tabela-extrato").innerHTML = gerarTabela(listaExtrato, cabecalhosExtrato);
+                if(listaExtrato.length > 0){
+                    $("#tabela-extrato").DataTable();
+                }
+                break;
 
             case "lista-embarcacoes":
                 if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao?filtro=
@@ -271,11 +287,36 @@ function carregarPagina(pagina){
                 //Tabela de aluguéis
                 let cabecalhosAlugueis = ["Embarcação","Comprador","Data do Evento","Preço unitário","Status"];
                 document.getElementById("tabela-alugueis").innerHTML = gerarTabela(listaAlugueis, cabecalhosAlugueis);
-                $("#tabela-alugueis").DataTable();
+                if(listaAlugueis.length > 0){
+                    $("#tabela-alugueis").DataTable();
+                }
                 //Tabela de passeios
                 let cabecalhosPasseios = ["Embarcação","Passageiros","Data do Evento","Preço unitário","Status"];
                 document.getElementById("tabela-passeios").innerHTML = gerarTabela(listaPasseios, cabecalhosPasseios);
-                $("#tabela-passeios").DataTable();
+                if(listaPasseios.length > 0){
+                    $("#tabela-passeios").DataTable();
+                }
+                break;
+
+            case "lista-servicos-cliente":
+                if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha_cliente
+                    ?filtro=where fk_usuario=${usuario.id}
+                    order by data_aluguel desc`);
+                if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_cliente
+                    ?filtro=where fk_usuario=${usuario.id}
+                    order by data_aluguel desc`);
+                //Tabela de aluguéis
+                let clienteAlugueis = ["Embarcação","Cidade","Empresa","Valor Pago","Data do Evento"];
+                document.getElementById("tabela-alugueis").innerHTML = gerarTabela(listaAlugueis, clienteAlugueis);
+                if(listaAlugueis.length > 0){
+                    $("#tabela-alugueis").DataTable();
+                }
+                //Tabela de passeios
+                let clientePasseios = ["Embarcação","Cidade","Empresa","Nº de Pessoas","Valor Pago","Data do Evento"];
+                document.getElementById("tabela-passeios").innerHTML = gerarTabela(listaPasseios, clientePasseios);
+                if(listaPasseios.length > 0){
+                    $("#tabela-passeios").DataTable();
+                }
                 break;
 
             case "lista-socios":
@@ -285,6 +326,11 @@ function carregarPagina(pagina){
                     order by nome`);
                 let cabecalhosSocios = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","País","CEP","Alto Acesso"];
                 document.getElementById("tabela-socios").innerHTML = gerarTabela(listaSocios, cabecalhosSocios);
+                if(listaSocios.length < 5){
+                    document.getElementById("div-content").insertAdjacentHTML("beforeend", `
+                        <p><a href="#cadastro-socio">Cadastrar um Sócio</a></p>
+                    `);
+                }
                 break;
 
             case "login":
@@ -370,6 +416,7 @@ function permitirAcesso(pagina){
         case "#cadastro-servico":
         case "#lista-embarcacoes":
         case "#lista-servicos":
+        case "#extrato":
             if(!usuario || usuario.vinculo=="cliente"){
                 return false;
             }
@@ -385,6 +432,7 @@ function permitirAcesso(pagina){
             
         //Permissões somente para cliente
         case "#detalhes-pedido":
+        case "#lista-servicos-cliente":
             if(!usuario || usuario.vinculo!="cliente"){
                 return false;
             }
@@ -468,6 +516,7 @@ function gerarTabela (dados, cabecalhos){
                     tabela+=`<td>${formatarData(dado[valor])}</td>`;
                     break;
                 case "data_aluguel":
+                case "data_pagamento":
                     tabela+=`<td>${formatarData(dado[valor], true)}</td>`;
                     break;
                 case "altoAcesso":

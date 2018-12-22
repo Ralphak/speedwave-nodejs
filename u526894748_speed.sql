@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 22/12/2018 às 02:52
+-- Tempo de geração: 22/12/2018 às 05:58
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -42,6 +42,24 @@ CREATE TABLE `alugalancha` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura stand-in para view `alugalancha_cliente`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `alugalancha_cliente` (
+`id` int(11)
+,`fk_usuario` int(11)
+,`fk_embarcacao` int(11)
+,`nome_embarcacao` varchar(255)
+,`cidade` varchar(50)
+,`fk_empresa` int(11)
+,`razao` varchar(255)
+,`valor` double
+,`data_aluguel` datetime
+);
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura stand-in para view `alugalancha_empresa`
 -- (Veja abaixo para a visão atual)
 --
@@ -71,6 +89,25 @@ CREATE TABLE `aluguelbarco` (
   `valor` double DEFAULT NULL,
   `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para view `aluguelbarco_cliente`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `aluguelbarco_cliente` (
+`id` int(11)
+,`fk_usuario` int(11)
+,`fk_embarcacao` int(11)
+,`nome_embarcacao` varchar(255)
+,`cidade` varchar(50)
+,`fk_empresa` int(11)
+,`razao` varchar(255)
+,`num_pessoas` bigint(21)
+,`valor` double
+,`data_aluguel` datetime
+);
 
 -- --------------------------------------------------------
 
@@ -186,6 +223,22 @@ CREATE TABLE `endereco` (
   `numero` int(5) DEFAULT NULL,
   `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura stand-in para view `extrato`
+-- (Veja abaixo para a visão atual)
+--
+CREATE TABLE `extrato` (
+`id` int(11)
+,`fk_empresa` int(11)
+,`fk_usuario` int(11)
+,`valor` double
+,`data_pagamento` datetime
+,`nome` varchar(255)
+,`cliente` varchar(255)
+);
 
 -- --------------------------------------------------------
 
@@ -314,6 +367,15 @@ CREATE TABLE `usuario` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura para view `alugalancha_cliente`
+--
+DROP TABLE IF EXISTS `alugalancha_cliente`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `alugalancha_cliente`  AS  select `alugalancha`.`id` AS `id`,`alugalancha`.`fk_usuario` AS `fk_usuario`,`alugalancha`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`alugalancha`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,`alugalancha`.`valor` AS `valor`,`alugalancha`.`data_aluguel` AS `data_aluguel` from ((`alugalancha` join `embarcacao` on(`alugalancha`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`alugalancha`.`fk_empresa` = `empresabarco`.`id`)) where `alugalancha`.`fk_usuario` is not null ;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para view `alugalancha_empresa`
 --
 DROP TABLE IF EXISTS `alugalancha_empresa`;
@@ -323,11 +385,29 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEF
 -- --------------------------------------------------------
 
 --
+-- Estrutura para view `aluguelbarco_cliente`
+--
+DROP TABLE IF EXISTS `aluguelbarco_cliente`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`pagamentos`.`valor` AS `valor`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `aluguelbarco`.`id` ;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para view `aluguelbarco_empresa`
 --
 DROP TABLE IF EXISTS `aluguelbarco_empresa`;
 
 CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_empresa`  AS  select `aluguelbarco`.`id` AS `id`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_passageiros`,`embarcacao`.`max_passageiros` AS `max_passageiros`,`aluguelbarco`.`data_aluguel` AS `data_aluguel`,`aluguelbarco`.`valor` AS `valor`,`aluguelbarco`.`status` AS `status` from ((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) left join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) group by `aluguelbarco`.`id` ;
+
+-- --------------------------------------------------------
+
+--
+-- Estrutura para view `extrato`
+--
+DROP TABLE IF EXISTS `extrato`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `extrato`  AS  select `pagamentos`.`id` AS `id`,`pagamentos`.`fk_empresa` AS `fk_empresa`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`pagamentos`.`valor` AS `valor`,`pagamentos`.`data_pagamento` AS `data_pagamento`,`embarcacao`.`nome` AS `nome`,`usuario`.`nome` AS `cliente` from ((((`pagamentos` join `passageiros` on(`pagamentos`.`id` = `passageiros`.`fk_pagamento`)) join `aluguelbarco` on(`passageiros`.`fk_aluguelbarco` = `aluguelbarco`.`id`)) join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `usuario` on(`pagamentos`.`fk_usuario` = `usuario`.`id`)) group by `pagamentos`.`id` union select `pagamentos`.`id` AS `id`,`pagamentos`.`fk_empresa` AS `fk_empresa`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`pagamentos`.`valor` AS `valor`,`pagamentos`.`data_pagamento` AS `data_pagamento`,`embarcacao`.`nome` AS `nome`,`usuario`.`nome` AS `cliente` from (((`pagamentos` join `alugalancha` on(`pagamentos`.`id` = `alugalancha`.`fk_pagamento`)) join `embarcacao` on(`alugalancha`.`fk_embarcacao` = `embarcacao`.`id`)) join `usuario` on(`pagamentos`.`fk_usuario` = `usuario`.`id`)) group by `pagamentos`.`id` ;
 
 -- --------------------------------------------------------
 
@@ -415,7 +495,8 @@ ALTER TABLE `pagamentos`
 ALTER TABLE `passageiros`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_pass_aluguelbarco` (`fk_aluguelbarco`),
-  ADD KEY `fk_barco_pagamento` (`fk_pagamento`);
+  ADD KEY `fk_barco_pagamento` (`fk_pagamento`),
+  ADD KEY `fk_pass_usuario` (`fk_usuario`);
 
 --
 -- Índices de tabela `socio`
@@ -581,7 +662,8 @@ ALTER TABLE `pagamentos`
 --
 ALTER TABLE `passageiros`
   ADD CONSTRAINT `fk_barco_pagamento` FOREIGN KEY (`fk_pagamento`) REFERENCES `pagamentos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_pass_aluguelbarco` FOREIGN KEY (`fk_aluguelbarco`) REFERENCES `aluguelbarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_pass_aluguelbarco` FOREIGN KEY (`fk_aluguelbarco`) REFERENCES `aluguelbarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_pass_usuario` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `socio`
