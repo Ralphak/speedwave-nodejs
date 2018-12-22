@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 21/12/2018 às 11:54
+-- Tempo de geração: 22/12/2018 às 02:52
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -35,7 +35,8 @@ CREATE TABLE `alugalancha` (
   `fk_empresa` int(11) NOT NULL,
   `data_aluguel` datetime DEFAULT NULL,
   `valor` double DEFAULT NULL,
-  `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo'
+  `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo',
+  `fk_pagamento` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -213,7 +214,8 @@ CREATE TABLE `pagamentos` (
   `id` int(11) NOT NULL,
   `fk_empresa` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
-  `valor` double NOT NULL
+  `valor` double NOT NULL,
+  `data_pagamento` datetime DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -227,7 +229,7 @@ CREATE TABLE `passageiros` (
   `fk_aluguelbarco` int(11) NOT NULL,
   `fk_usuario` int(11) DEFAULT NULL,
   `nome` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `cpf` varchar(25) COLLATE utf8_unicode_ci NOT NULL
+  `fk_pagamento` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 --
@@ -237,20 +239,6 @@ DELIMITER $$
 CREATE TRIGGER `trigger_lotado` AFTER INSERT ON `passageiros` FOR EACH ROW UPDATE aluguelbarco JOIN aluguelbarco_empresa on aluguelbarco.id=aluguelbarco_empresa.id SET aluguelbarco.status='Lotado' WHERE (aluguelbarco.status='Ativo') AND (aluguelbarco_empresa.num_passageiros >= aluguelbarco_empresa.max_passageiros)
 $$
 DELIMITER ;
-
--- --------------------------------------------------------
-
---
--- Estrutura para tabela `passlancha`
---
-
-CREATE TABLE `passlancha` (
-  `id` int(11) NOT NULL,
-  `fk_alugalancha` int(11) NOT NULL,
-  `fk_usuario` int(11) DEFAULT NULL,
-  `nome` varchar(255) COLLATE utf8_unicode_ci NOT NULL,
-  `cpf` varchar(25) COLLATE utf8_unicode_ci NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -291,19 +279,6 @@ CREATE TABLE `socio_login` (
 ,`razao` varchar(255)
 ,`nome` varchar(255)
 );
-
--- --------------------------------------------------------
-
---
--- Estrutura para tabela `triplancha`
---
-
-CREATE TABLE `triplancha` (
-  `id` int(11) NOT NULL,
-  `fk_alugalancha` int(11) DEFAULT NULL,
-  `nome` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cpf` varchar(25) COLLATE utf8_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -374,7 +349,8 @@ ALTER TABLE `alugalancha`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_usuario` (`fk_usuario`),
   ADD KEY `fk_embarcacao` (`fk_embarcacao`),
-  ADD KEY `fk_vendemp` (`fk_empresa`);
+  ADD KEY `fk_vendemp` (`fk_empresa`),
+  ADD KEY `fk_lancha_pagamento` (`fk_pagamento`);
 
 --
 -- Índices de tabela `aluguelbarco`
@@ -438,14 +414,8 @@ ALTER TABLE `pagamentos`
 --
 ALTER TABLE `passageiros`
   ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_pass_aluguelbarco` (`fk_aluguelbarco`);
-
---
--- Índices de tabela `passlancha`
---
-ALTER TABLE `passlancha`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_pass_alugalancha` (`fk_alugalancha`);
+  ADD KEY `fk_pass_aluguelbarco` (`fk_aluguelbarco`),
+  ADD KEY `fk_barco_pagamento` (`fk_pagamento`);
 
 --
 -- Índices de tabela `socio`
@@ -453,13 +423,6 @@ ALTER TABLE `passlancha`
 ALTER TABLE `socio`
   ADD PRIMARY KEY (`id`),
   ADD KEY `fk_empresa` (`fk_empresa`);
-
---
--- Índices de tabela `triplancha`
---
-ALTER TABLE `triplancha`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_tripu_alugalancha` (`fk_alugalancha`);
 
 --
 -- Índices de tabela `tripulantes`
@@ -539,21 +502,9 @@ ALTER TABLE `passageiros`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de tabela `passlancha`
---
-ALTER TABLE `passlancha`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de tabela `socio`
 --
 ALTER TABLE `socio`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de tabela `triplancha`
---
-ALTER TABLE `triplancha`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -578,6 +529,7 @@ ALTER TABLE `usuario`
 ALTER TABLE `alugalancha`
   ADD CONSTRAINT `fk_lancha_embarcacao` FOREIGN KEY (`fk_embarcacao`) REFERENCES `embarcacao` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_lancha_empresa` FOREIGN KEY (`fk_empresa`) REFERENCES `empresabarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_lancha_pagamento` FOREIGN KEY (`fk_pagamento`) REFERENCES `pagamentos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_lancha_usuario` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
@@ -628,25 +580,14 @@ ALTER TABLE `pagamentos`
 -- Restrições para tabelas `passageiros`
 --
 ALTER TABLE `passageiros`
+  ADD CONSTRAINT `fk_barco_pagamento` FOREIGN KEY (`fk_pagamento`) REFERENCES `pagamentos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_pass_aluguelbarco` FOREIGN KEY (`fk_aluguelbarco`) REFERENCES `aluguelbarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Restrições para tabelas `passlancha`
---
-ALTER TABLE `passlancha`
-  ADD CONSTRAINT `fk_pass_alugalancha` FOREIGN KEY (`fk_alugalancha`) REFERENCES `alugalancha` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `socio`
 --
 ALTER TABLE `socio`
   ADD CONSTRAINT `fk_socio_emp` FOREIGN KEY (`fk_empresa`) REFERENCES `empresabarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Restrições para tabelas `triplancha`
---
-ALTER TABLE `triplancha`
-  ADD CONSTRAINT `fk_tripu_alugalancha` FOREIGN KEY (`fk_alugalancha`) REFERENCES `alugalancha` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `tripulantes`

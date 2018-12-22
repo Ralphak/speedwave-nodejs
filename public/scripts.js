@@ -168,29 +168,50 @@ function carregarPagina(pagina){
                 document.getElementById("servico-data").innerHTML = formatarData(detalhesServico.data_aluguel, true);
                 document.getElementById("servico-comprador").innerHTML = usuario.nome;
                 document.getElementById("servico-endereco").innerHTML = `${endereco[0].rua} ${endereco[0].numero} ${endereco[0].complemento} ${endereco[0].bairro} ${endereco[0].cidade} ${endereco[0].estado} ${endereco[0].pais}`;
-                //Construção do formulário
-                document.getElementsByName("tipo_embarcacao")[0].value = detalhesServico.categoria;
-                document.getElementsByName("id_pagamento")[0].value = orderID;
-                document.getElementsByName("id_servico")[0].value = detalhesServico.id;
-                document.getElementsByName("id_empresa")[0].value = detalhesServico.fk_empresa;
-                document.getElementsByName("id_usuario")[0].value = usuario.id;
+                //Envia os valores para a API
                 if(detalhesServico.categoria == "Barco"){
-                    document.getElementById("form-pedido").insertAdjacentHTML("beforeend", `
-                        <label for="qtd_passageiros">Nº de Pessoas: </label>
-                        <input name="qtd_passageiros" type="number" min=1 max=${detalhesServico.max_passageiros}>
+                    document.getElementById("form-pedido").insertAdjacentHTML("afterbegin", `
+                        <label for="qtd_passageiros"><b>Nº de Pessoas: </b></label>
+                        <input name="qtd_passageiros" type="number" min=1 max=${detalhesServico.max_passageiros} value=1>
                         Máximo de ${detalhesServico.max_passageiros}<br>
                         <b>Preço Total: </b>R$<span id="servico-preco-total">${detalhesServico.valor}</span><br><br>
+                        <input name="nome" placeholder="Nome do Passageiro" maxlength="255" required><br>
+                        <div id="passageiros-extras"></div><br>
                     `);
+                    bloquearEnvio("form-pedido", "pay-button-getnet");
+                    document.querySelector(".pay-button-getnet").disabled = true;
+                    //Valor Inicial
+                    apiGetnet.getnetAmount = detalhesServico.valor.toFixed(2);
+                    apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${detalhesServico.valor.toFixed(2)}, "quantity": 1,"sku": ""}]`;
+                    //Atualização do valor
                     document.getElementsByName("qtd_passageiros")[0].addEventListener("change", (e)=>{
                         let precoTotal = detalhesServico.valor * e.currentTarget.value;
                         document.getElementById("servico-preco-total").innerHTML = precoTotal;
                         apiGetnet.getnetAmount = precoTotal.toFixed(2);
                         apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${precoTotal.toFixed(2)}, "quantity": ${e.currentTarget.value},"sku": ""}]`;
+                        document.getElementById("passageiros-extras").innerHTML = "";
+                        if(e.currentTarget.value >= 2){
+                            for(let i=2; i<=e.currentTarget.value; i++){
+                                document.getElementById("passageiros-extras").insertAdjacentHTML("beforeend", `
+                                    <input name="nome" placeholder="Nome do Passageiro" maxlength="255" required><br>
+                                `);
+                            }
+                        }
+                        bloquearEnvio("form-pedido", "pay-button-getnet");
+                    });
+                    //Construção da URL do callback
+                    document.getElementById("form-pedido").addEventListener("change", ()=>{
+                        let nomePassageiros = "";
+                        document.getElementsByName("nome").forEach(nome =>{
+                            nomePassageiros += nome.value.replace(",","") + ",";
+                        });
+                        apiGetnet.getnetUrlCallback = `/getnet/registrar?bitmask=0,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id}&nome=${nomePassageiros}`;
                     });
                 } else{
                     apiGetnet.getnetAmount = detalhesServico.valor.toFixed(2);
                     apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Aluguel de Lancha", "value": ${detalhesServico.valor.toFixed(2)}, "quantity": 1,"sku": ""}]`;
-                }  console.log(apiGetnet);
+                    apiGetnet.getnetUrlCallback = `/getnet/registrar?bitmask=1,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id}`;
+                }
                 //Exibir a página
                 document.getElementById("exibicao-carregando").setAttribute("hidden","");
                 document.getElementById("exibicao-pedido").removeAttribute("hidden");
@@ -537,4 +558,22 @@ function gerarModal(lista, i, cabecalhos, fotos=[]){
     //Exibir modal
     document.querySelector(".modal-body").innerHTML = modalBody;
     $('.modal').modal('show');
+}
+
+//Bloqueia o botão se houver campo vazio
+function bloquearEnvio(classeForm, classeBtn="btn"){
+    let form = document.getElementById(classeForm),
+        botao = document.querySelector(`.${classeBtn}`);
+    form.addEventListener("change", ()=>{
+        botao.disabled = false;
+        try{
+            document.querySelectorAll("input[required]").forEach(campo =>{
+                if(campo.value == ""){
+                    throw vazio;
+                }
+            });
+        }catch(vazio){
+            botao.disabled = true;
+        }
+    });
 }

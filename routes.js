@@ -270,9 +270,79 @@ router.get('/getnet/autenticar', (req, res)=>{
 });
 
 //Registro de compra pelo e-commerce da Getnet
-router.post('/getnet/registrar', (req, res)=>{
-    //TODO: Transaction MySQL para inserir os pagamentos
-    res.json(req.body);
+router.get('/getnet/registrar', (req, res)=>{
+    let bitmask = req.query.bitmask.split(","),
+        dadosTransacao = {
+            id : bitmask[1],
+            fk_empresa : bitmask[2],
+            fk_usuario : req.user.id,
+            valor : bitmask[3],
+            data_pagamento : new Date()
+        };
+    if(bitmask[0] == 0){
+        let nomes = req.query.nome.split(",")
+        nomes.pop();
+    }
+    mysql.getConnection((err, conn)=>{
+        if(err){
+            res.send(err.stack);
+            return;
+        }
+        conn.beginTransaction((err)=>{
+            if(err){
+                res.send(err.stack);
+                return;
+            }
+            conn.query("insert into pagamentos set ?", dadosTransacao, (err, results)=>{
+                if(err){
+                    conn.rollback(()=>{res.send(err.stack);});
+                    return;
+                }
+                if(bitmask[0] == 0){ //Passeio de barco
+                    nomes.forEach(nome_passageiro =>{
+                        let dadosPassageiro = {
+                            fk_aluguelbarco : bitmask[4],
+                            fk_usuario : req.user.id,
+                            nome : nome_passageiro,
+                            fk_pagamento : bitmask[1]
+                        };
+                        conn.query("insert into passageiros set ?", dadosPassageiro, (err, results)=>{
+                            if(err){
+                                conn.rollback(()=>{res.send(err.stack);});
+                                return;
+                            }
+                            conn.commit((err)=>{
+                                if(err){
+                                    conn.rollback(()=>{res.send(err.stack);});
+                                    return;
+                                }
+                                res.redirect('/#sucesso');
+                            });
+                        });
+                    });
+                } else{ //Aluguel de lancha
+                    let arrayValores = [req.user.id, bitmask[1], "Alugado", bitmask[4]];
+                    conn.query("update alugalancha set fk_usuario=?, fk_pagamento=?, status=? where id=?", arrayValores, (err, results)=>{
+                        if(err){
+                            conn.rollback(()=>{res.send(err.stack);});
+                            return;
+                        }
+                        conn.commit((err)=>{
+                            if(err){
+                                conn.rollback(()=>{res.send(err.stack);});
+                                return;
+                            }
+                            res.redirect('/#sucesso');
+                        });
+                    });
+                }
+            });
+        });
+    });
+});
+
+router.get('/api/teste', (req,res)=>{
+    res.send(new Date());
 });
 
 module.exports = router;

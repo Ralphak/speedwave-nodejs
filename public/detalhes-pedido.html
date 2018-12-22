@@ -10,13 +10,7 @@
     <b>Comprador: </b><span id="servico-comprador"></span><br>
     <b>Endereço: </b><span id="servico-endereco"></span><br>
     <br>
-    <form method="post" id="form-pedido" action="/getnet/registrar">
-        <input name="tipo_embarcacao" hidden readonly>
-        <input name="id_pagamento" hidden readonly>
-        <input name="id_servico" hidden readonly>
-        <input name="id_empresa" hidden readonly>
-        <input name="id_usuario" hidden readonly>
-    </form>
+    <form id="form-pedido"></form>
     <button class="btn btn-primary pay-button-getnet">Pagar</button>
 </div>
 
@@ -46,11 +40,4 @@
   data-getnet-items='[{"name": "","description": "", "value": 0, "quantity": 0,"sku": ""}]'
   data-getnet-url-callback=""
   data-getnet-pre-authorization-credit="">
-    getnet.subscribe('success', function() {
-        document.getElementById("form-pedido").submit();
-    });
-    getnet.subscribe('error', function(status, response) {
-        console.log(status);
-        console.log(response);
-    });
 </script>
