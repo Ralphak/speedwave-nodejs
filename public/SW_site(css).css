@@ -130,7 +130,7 @@
     font-style: normal;
     margin-left: 34px;
     height: 135px;
-    width: 210px;
+    max-width: 240px;
 }
 #quemsomos_info{
     position: relative;
@@ -145,7 +145,7 @@
     font-style: normal;
     white-space: pre-line;
     /* top: -182px; */
-    right: 34px;
+    right: 14px;
     text-align: justify;
 }
 #cadastro{
