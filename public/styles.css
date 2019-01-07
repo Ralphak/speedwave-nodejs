@@ -1,15 +1,5 @@
-.bg-darkblue{
-    background-color: #315291;
-}
-
-body{
-    padding-top: 66px;
-    background-color: darkblue;
-}
-
 .card{
     width: 160px;
-    color: black;
 }
 
 .center{
@@ -17,23 +7,14 @@ body{
     margin: 0 auto;
 }
 
-#div-background{
-    background-image: url("img/background.jpeg");
-    background-size: 100vw calc(100vh - 66px);
-    width: 100vw;
-    height: calc(100vh - 66px);
-    position: fixed;
-    z-index: -1;
-    opacity: 0.66;
-}
-
 #div-content{
     margin: 10px;
-    color: white;
+    background-color: white;
 }
 
-#div-content a{
-    color: aqua;
+.fa-bars{
+    color: #3F538F;
+    font-size: x-large;
 }
 
 form h2{
@@ -58,12 +39,6 @@ i{
     margin: 2px;
 }
 
-.img-demo{
-    max-width: 95%;
-    object-fit: contain;
-    padding: 10px;
-}
-
 .img-logo{
     max-width: 30%;
     max-height: 30%;
@@ -73,13 +48,8 @@ input{
     margin-bottom: 4px;
 }
 
-.modal, .page-link, .table-light{
-    color: black !important;
-}
-
 .nav-link{
-    font-size: 20px;
-    padding-bottom: .7rem;
+    margin-left: 1rem;
 }
 
 td i{

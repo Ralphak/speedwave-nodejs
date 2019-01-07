@@ -1,42 +1,51 @@
 <!DOCTYPE html>
 <html>
 <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Speed Wave</title>
     <link rel="icon" href="favicon.ico">
     <link rel="stylesheet" href="plugins/bootstrap.min.css">
     <link rel="stylesheet" href="plugins/floating-labels.css">
     <link rel="stylesheet" href="plugins/fontawesome-all.min.css">
     <link rel="stylesheet" href="plugins/datatables.min.css">
+    <link href="SW_site(css).css" rel="stylesheet" type="text/css">
     <link rel="stylesheet" href="styles.css">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
 
 <body hidden>
-    <nav class="navbar navbar-expand-sm navbar-dark bg-darkblue fixed-top">
-        <a class="navbar-brand" href="#">
-            <img src="img/speedwave.png" alt="Speed Wave" data-toggle="collapse" data-target=".navbar-collapse.show">
-        </a>
+    <div id="background"></div>
+    <div style="background-color:red; color:white; text-align:center">
+        <b>AVISO: Site em fase de testes!</b><br>
+        Todos os dados salvos aqui são fictícios e serão apagados ao término desta etapa!
+    </div>
+    <nav class="navbar navbar-expand-md fixed-top barra_menu">
+        <div class="Logo_SW">
+            <a class="navbar-brand" href="#">
+                <img src="img/Speed Wave (logo).png" width="295px" alt="Speed Wave" data-toggle="collapse" data-target=".navbar-collapse.show">
+            </a>
+        </div>
 
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample05" aria-controls="navbarsExample05" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
+            <i class="fas fa-bars"></i>
         </button>
 
         <div class="collapse navbar-collapse" id="navbarsExample05">
             <ul class="navbar-nav mr-auto">
                 <li class="nav-item" data-toggle="collapse" data-target=".navbar-collapse.show">
-                    <a class="nav-link" href="#quem-somos">Quem Somos</a>
+                    <a class="nav-link botao" href="#quem-somos">Quem Somos</a>
                 </li>
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#contato" id="dropdown-contato" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Contato</a>
+                    <a class="nav-link dropdown-toggle botao" href="#contato" id="dropdown-contato" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Contato</a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-contato" data-toggle="collapse" data-target=".navbar-collapse.show">
                         <a class="dropdown-item" href="mailto:sac@speedwaveturismonautico.com.br">
-                            <i class="fas fa-envelope"></i> sac@speedwaveturismonautico.com.br
+                            <i class="fas fa-envelope"></i> E-mail
                         </a>
                         <a class="dropdown-item" href="https://www.facebook.com/Speedwavepasseio/" target="_blank">
-                            <i class="fab fa-facebook"></i> Speed Wave Turismo Náutico
+                            <i class="fab fa-facebook"></i> Facebook
                         </a>
                         <a class="dropdown-item" href="https://www.instagram.com/lanchaspeedwave/" target="_blank">
-                            <i class="fab fa-instagram"></i> @lanchaspeedwave
+                            <i class="fab fa-instagram"></i> Instagram
                         </a>
                     </div>
                 </li>
@@ -44,14 +53,13 @@
             
             <ul class="navbar-nav ml-auto" id="menu-usuario">
                 <li class="nav-item dropdown" hidden>
-                    <a class="nav-link dropdown-toggle" href="" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
+                    <a class="nav-link dropdown-toggle botao" href="" id="dropdown-user" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"></a>
                     <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdown-user" data-toggle="collapse" data-target=".navbar-collapse.show">
                     </div>
                 </li>
             </ul>
         </div>
     </nav>
-    <div id="div-background"></div>
     <div id="div-content"></div>
 </body>
 

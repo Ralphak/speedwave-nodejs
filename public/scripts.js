@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
     } else{
         menuUsuario.insertAdjacentHTML("beforeend", `
             <li class="nav-item">
-                <a class="nav-link" href="#login">Login</a>
+                <a class="nav-link botao" href="#login">Login</a>
             </li>
         `);
     }
@@ -392,7 +392,6 @@ function carregarPagina(pagina){
                 break;
 
             case "pagina-inicial":
-                $('.carousel').carousel()
                 if(!usuario || usuario.vinculo=="cliente"){
                     document.getElementById("area-cliente").removeAttribute("hidden");
                     //Obtenção dos serviços do banco de dados
