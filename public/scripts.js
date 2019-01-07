@@ -432,6 +432,20 @@ function carregarPagina(pagina){
                     });
                 }
                 break;
+
+            case "quem-somos":
+                let quemsomosMenu = document.querySelectorAll(".quemsomos"),
+                    quemsomosInfo = document.getElementById("quemsomos_info").querySelectorAll("div"),
+                    quemsomosAtivo = 0;
+                for(let i=0; i<quemsomosMenu.length; i++){
+                    quemsomosMenu[i].addEventListener("click", (e)=>{
+                        e.preventDefault();
+                        quemsomosInfo[quemsomosAtivo].setAttribute("hidden","");
+                        quemsomosInfo[i].removeAttribute("hidden");
+                        quemsomosAtivo = i;
+                    });
+                }
+                break;
         }
     });
 }

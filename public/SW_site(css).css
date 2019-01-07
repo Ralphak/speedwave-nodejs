@@ -119,12 +119,12 @@
 }
 #quemsomos_menu{
     position: relative;
-    background-color: #FFFFFF;
+    /* background-color: #FFFFFF; */
     padding-top: 15px;
     padding-right: 10px;
     padding-bottom: 15px;
     padding-left: 10px;
-    border-right: thin double #3F538F;
+    /* border-right: thin double #3F538F; */
     font-size: small;
     font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, sans-serif;
     font-style: normal;
@@ -134,7 +134,7 @@
 }
 #quemsomos_info{
     position: relative;
-    background-color: #FFFFFF;
+    /* background-color: #FFFFFF; */
     width: 66.6%;
     float: right;
     margin-top: 10px;
@@ -144,7 +144,7 @@
     font-family: Segoe, "Segoe UI", "DejaVu Sans", "Trebuchet MS", Verdana, sans-serif;
     font-style: normal;
     white-space: pre-line;
-    top: -182px;
+    /* top: -182px; */
     right: 34px;
     text-align: justify;
 }
@@ -213,7 +213,6 @@
 	border-style: double;
 	border-color: #EFEFEF;
 }
-
 
 
 .botao_menu:hover .menu_dropdown{
