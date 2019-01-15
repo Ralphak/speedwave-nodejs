@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 22/12/2018 às 05:58
+-- Tempo de geração: 10/01/2019 às 00:13
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -189,6 +189,20 @@ CREATE TABLE `empresabarco` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `empresadetalhes`
+--
+
+CREATE TABLE `empresadetalhes` (
+  `id` int(11) NOT NULL,
+  `fk_empresa` int(11) DEFAULT NULL,
+  `idoma` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `indica` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `sobre` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `endemp`
 --
 
@@ -308,7 +322,7 @@ CREATE TABLE `socio` (
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `usu` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cep` int(8) DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
@@ -389,7 +403,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEF
 --
 DROP TABLE IF EXISTS `aluguelbarco_cliente`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`pagamentos`.`valor` AS `valor`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `aluguelbarco`.`id` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`pagamentos`.`valor` AS `valor`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `pagamentos`.`fk_usuario` ;
 
 -- --------------------------------------------------------
 
@@ -459,6 +473,14 @@ ALTER TABLE `embarcacao`
 --
 ALTER TABLE `empresabarco`
   ADD PRIMARY KEY (`id`);
+
+--
+-- Índices de tabela `empresadetalhes`
+--
+ALTER TABLE `empresadetalhes`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `id` (`id`),
+  ADD UNIQUE KEY `fk_empresa` (`fk_empresa`);
 
 --
 -- Índices de tabela `endemp`
@@ -550,6 +572,12 @@ ALTER TABLE `embarcacao`
 -- AUTO_INCREMENT de tabela `empresabarco`
 --
 ALTER TABLE `empresabarco`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT de tabela `empresadetalhes`
+--
+ALTER TABLE `empresadetalhes`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
@@ -676,17 +704,6 @@ ALTER TABLE `socio`
 --
 ALTER TABLE `tripulantes`
   ADD CONSTRAINT `fk_tripu_aluguelbarco` FOREIGN KEY (`fk_aluguelbarco`) REFERENCES `aluguelbarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
-DELIMITER $$
---
--- Eventos
---
-CREATE DEFINER=`u526894748_pic`@`127.0.0.1` EVENT `event_terminar_servicos` ON SCHEDULE EVERY 1 DAY STARTS '2018-12-21 05:24:02' ON COMPLETION PRESERVE ENABLE DO BEGIN
-UPDATE alugalancha SET status='Terminado' where (status NOT LIKE 'Terminado') AND (data_aluguel < CURRENT_DATE);
-UPDATE aluguelbarco SET status='Terminado' where (status NOT LIKE 'Terminado') AND (data_aluguel < CURRENT_DATE);
-END$$
-
-DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

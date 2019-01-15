@@ -3,7 +3,8 @@ const express = require("express"),
     mysql = require("./mysql.js"),
     loginAPI = require("./login-api.js"),
     crypto = require("crypto"),
-    getnet = require("./client-oauth2");
+    getnet = require("./client-oauth2"),
+    nodemailer = require("./nodemailer");
     
 var vinculoUsuario;
 
@@ -15,6 +16,7 @@ router.get('/api/buscar/:tabela', (req, res)=>{
     }
     mysql.query(`select ${req.query.colunas} from ${req.params.tabela} ${req.query.filtro}`, (err, results)=>{
         if(err){
+            nodemailer.enviarErro(err.stack);
             res.send(err.stack);
             return;
         }
@@ -33,6 +35,7 @@ router.post('/api/incluir/:tabela', (req, res)=>{
     }
     mysql.query("insert into " + req.params.tabela + " set ?", req.body, (err, results)=>{
         if(err){
+            nodemailer.enviarErro(err.stack);
             res.send(err.stack);
             return;
         }
@@ -77,16 +80,19 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
         };
     mysql.getConnection((err, conn)=>{
         if(err){
+            nodemailer.enviarErro(err.stack);
             res.send(err.stack);
             return;
         }
         conn.beginTransaction((err)=>{
             if(err){
+                nodemailer.enviarErro(err.stack);
                 res.send(err.stack);
                 return;
             }
             conn.query(`insert into empresabarco set ?`, dadosEmpresa, (err, results)=>{
                 if(err){
+                    nodemailer.enviarErro(err.stack);
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
@@ -94,17 +100,20 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
                 dadosEndereco.fk_empresa = idEmpresa;
                 conn.query(`insert into endemp set ?`, dadosEndereco, (err, results)=>{
                     if(err){
+                        nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
                     dadosPagamento.fk_empresa = idEmpresa;
                     conn.query(`insert into bancoempbarco set ?`, dadosPagamento, (err, results)=>{
                         if(err){
+                            nodemailer.enviarErro(err.stack);
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
                         conn.commit((err)=>{
                             if(err){
+                                nodemailer.enviarErro(err.stack);
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
@@ -144,27 +153,32 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
         };
     mysql.getConnection((err, conn)=>{
         if(err){
+            nodemailer.enviarErro(err.stack);
             res.send(err.stack);
             return;
         }
         conn.beginTransaction((err)=>{
             if(err){
+                nodemailer.enviarErro(err.stack);
                 res.send(err.stack);
                 return;
             }
             conn.query("insert into embarcacao set ?", dadosEmbarcacao, (err, results)=>{
                 if(err){
+                    nodemailer.enviarErro(err.stack);
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
                 fotosEmbarcacao.fk_embar = results.insertId;
                 conn.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
                     if(err){
+                        nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
                     conn.commit((err)=>{
                         if(err){
+                            nodemailer.enviarErro(err.stack);
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
@@ -201,27 +215,32 @@ router.post('/api/cadastrar/cliente', (req, res)=>{
         };
         mysql.getConnection((err, conn)=>{
             if(err){
+                nodemailer.enviarErro(err.stack);
                 res.send(err.stack);
                 return;
             }
             conn.beginTransaction((err)=>{
                 if(err){
+                    nodemailer.enviarErro(err.stack);
                     res.send(err.stack);
                     return;
                 }
                 conn.query("insert into usuario set ?", dadosCliente, (err, results)=>{
                     if(err){
+                        nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
                     dadosEndereco.fk_usuario = results.insertId;
                     conn.query("insert into endereco set ?", dadosEndereco, (err, results)=>{
                         if(err){
+                            nodemailer.enviarErro(err.stack);
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
                         conn.commit((err)=>{
                             if(err){
+                                nodemailer.enviarErro(err.stack);
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
@@ -286,16 +305,19 @@ router.get('/getnet/registrar', (req, res)=>{
     }
     mysql.getConnection((err, conn)=>{
         if(err){
+            nodemailer.enviarErro(err.stack);
             res.send(err.stack);
             return;
         }
         conn.beginTransaction((err)=>{
             if(err){
+                nodemailer.enviarErro(err.stack);
                 res.send(err.stack);
                 return;
             }
             conn.query("insert into pagamentos set ?", dadosTransacao, (err, results)=>{
                 if(err){
+                    nodemailer.enviarErro(err.stack);
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
@@ -309,6 +331,7 @@ router.get('/getnet/registrar', (req, res)=>{
                         };
                         conn.query("insert into passageiros set ?", dadosPassageiro, (err, results)=>{
                             if(err){
+                                nodemailer.enviarErro(err.stack);
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
@@ -318,6 +341,7 @@ router.get('/getnet/registrar', (req, res)=>{
                     let arrayValores = [req.user.id, bitmask[1], "Alugado", bitmask[4]];
                     conn.query("update alugalancha set fk_usuario=?, fk_pagamento=?, status=? where id=?", arrayValores, (err, results)=>{
                         if(err){
+                            nodemailer.enviarErro(err.stack);
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
@@ -325,6 +349,7 @@ router.get('/getnet/registrar', (req, res)=>{
                 }
                 conn.commit((err)=>{
                     if(err){
+                        nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
@@ -335,8 +360,9 @@ router.get('/getnet/registrar', (req, res)=>{
     });
 });
 
-router.get('/api/teste', (req,res)=>{
-    res.send(new Date());
+//Envia um email com o erro
+router.post('/api/erro', (req, res)=>{
+    nodemailer.enviarErro(req.body.erro);
 });
 
 module.exports = router;

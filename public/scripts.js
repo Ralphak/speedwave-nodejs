@@ -82,6 +82,11 @@ function carregarPagina(pagina){
     //Carrega a página, adicionando parâmetros para páginas específicas
     $("#div-content").load(`${pagina}.html`, async()=>{
         switch(pagina){
+            case "cadastro-cliente":
+            case "cadastro-empresa":
+                confirmarSenha();
+                break;
+
             case "cadastro-embarcacao":
                 document.getElementsByName("fk_empbarco")[0].value = usuario.id;
                 break;
@@ -136,6 +141,7 @@ function carregarPagina(pagina){
 
             case "cadastro-socio":
                 document.getElementsByName("fk_empresa")[0].value = usuario.id;
+                confirmarSenha();
                 break;            
 
             case "detalhes-pedido":
@@ -351,10 +357,10 @@ function carregarPagina(pagina){
 
             case "lista-socios":
                 if(!listaSocios) listaSocios = await recuperarDados(`/api/buscar/socio
-                    ?colunas=id,nome,cpf,data_nasc,rua,bairro,cidade,estado,pais,cep,altoAcesso
+                    ?colunas=id,nome,cpf,data_nasc,rua,bairro,cidade,estado,cep,altoAcesso
                     &filtro=where fk_empresa=${usuario.id} 
                     order by nome`);
-                let cabecalhosSocios = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","País","CEP","Alto Acesso"];
+                let cabecalhosSocios = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","CEP","Alto Acesso"];
                 document.getElementById("tabela-socios").innerHTML = gerarTabela(listaSocios, cabecalhosSocios);
                 if(listaSocios.length < 5){
                     document.getElementById("div-content").insertAdjacentHTML("beforeend", `
@@ -504,6 +510,7 @@ async function recuperarDados (url) {
         dados = msg;
     }).fail(function(msg){
         console.log("AJAX " + msg.responseText);
+        $.post("/api/erro", {erro: "AJAX " + msg.responseText});
     });
     return dados;
 };
@@ -682,6 +689,19 @@ function bloquearEnvio(classeForm, classeBtn="btn"){
             });
         }catch(vazio){
             botao.disabled = true;
+        }
+    });
+}
+
+//Confirmação de senha
+function confirmarSenha(){
+    document.querySelector("form").addEventListener("change", (e)=>{
+        if(e.currentTarget.senha.value != document.querySelector(".confirmar_senha").value){
+            document.getElementById("erro-senha").removeAttribute("hidden","");
+            document.querySelector(".btn").setAttribute("disabled","");
+        } else{
+            document.getElementById("erro-senha").setAttribute("hidden","");
+            document.querySelector(".btn").removeAttribute("disabled","");
         }
     });
 }
