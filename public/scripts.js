@@ -342,6 +342,7 @@ function carregarPagina(pagina){
                 //Exibir modal com os passageiros do passeio
                 document.querySelectorAll(".ver-pessoas").forEach(botaoLista =>{
                     botaoLista.addEventListener("click", async(e)=>{
+                        document.querySelector(".modal-body").innerHTML = "Carregando...";
                         $('.modal').modal('show');
                         let passageirosCliente = await recuperarDados(`/api/buscar/passageiros
                             ?colunas=nome
@@ -675,6 +676,7 @@ function gerarModal(lista, i, cabecalhos, fotos=[]){
     $('.modal').modal('show');
 }
 
+
 //Bloqueia o botão se houver campo vazio
 function bloquearEnvio(classeForm, classeBtn="btn"){
     let form = document.getElementById(classeForm),
@@ -692,6 +694,7 @@ function bloquearEnvio(classeForm, classeBtn="btn"){
         }
     });
 }
+
 
 //Confirmação de senha
 function confirmarSenha(){
