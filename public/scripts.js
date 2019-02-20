@@ -345,7 +345,7 @@ function carregarPagina(pagina){
                         $('.modal').modal('show');
                         let passageirosCliente = await recuperarDados(`/api/buscar/passageiros
                             ?colunas=nome
-                            &filtro=where fk_usuario=${usuario.id}
+                            &filtro=where fk_usuario=${usuario.id} and fk_aluguelbarco=${botaoLista.id}
                             order by nome`);
                         document.querySelector(".modal-body").innerHTML = "";
                         passageirosCliente.forEach(pessoa =>{
