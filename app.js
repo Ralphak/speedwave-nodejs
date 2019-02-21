@@ -18,14 +18,6 @@ app.use(require("flash")());
 app.use(require("express-fileupload")());
 app.use(require("./routes.js"));
 
-//certificado SSL
-/*var credentials = {
-    key: fs.readFile('key.pem', 'utf8'),
-    cert: fs.readFile('cert.pem', 'utf8')
-};*/
-
-//Carregar o servidor
-//https.createServer(credentials, app).listen(port, function(){
 app.listen(port, ()=>{
     console.log(`Servidor iniciado na porta ${port}`)
 })

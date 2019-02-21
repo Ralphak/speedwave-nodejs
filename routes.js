@@ -1,10 +1,11 @@
 const express = require("express"),
     router = express.Router(),
-    mysql = require("./mysql.js"),
-    loginAPI = require("./login-api.js"),
+    mysql = require("./mysql"),
+    loginAPI = require("./login-api"),
     crypto = require("crypto"),
     getnet = require("./client-oauth2"),
-    nodemailer = require("./nodemailer");
+    nodemailer = require("./nodemailer"),
+    ftp = require("./ftp");
     
 var vinculoUsuario;
 
@@ -364,5 +365,11 @@ router.get('/getnet/registrar', (req, res)=>{
 router.post('/api/erro', (req, res)=>{
     nodemailer.enviarErro(req.body.erro);
 });
+
+router.post('/api/teste', (req, res)=>{
+    ftp.uploadArquivo(req.files, "/teste/envio/");
+    res.redirect("/");
+});
+
 
 module.exports = router;
