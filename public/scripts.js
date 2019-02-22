@@ -166,7 +166,7 @@ function carregarPagina(pagina){
                 apiGetnet.getnetCustomerAddressStreet = endereco[0].rua;
                 apiGetnet.getnetCustomerAddressStreetNumber = endereco[0].numero;
                 apiGetnet.getnetCustomerAddressZipcode = endereco[0].cep;
-                apiGetnet.getnetCustomerCountry = endereco[0].pais;
+                apiGetnet.getnetCustomerCountry = "Brasil";
                 apiGetnet.getnetCustomerDocumentNumber = usuario.cpf;
                 apiGetnet.getnetCustomerEmail = usuario.email;
                 apiGetnet.getnetCustomerFirstName = nomeSplit[0];
@@ -182,7 +182,7 @@ function carregarPagina(pagina){
                 document.getElementById("servico-local").innerHTML = detalhesServico.cidade;
                 document.getElementById("servico-data").innerHTML = formatarData(detalhesServico.data_aluguel, true);
                 document.getElementById("servico-comprador").innerHTML = usuario.nome;
-                document.getElementById("servico-endereco").innerHTML = `${endereco[0].rua} ${endereco[0].numero} ${endereco[0].complemento} ${endereco[0].bairro} ${endereco[0].cidade} ${endereco[0].estado} ${endereco[0].pais}`;
+                document.getElementById("servico-endereco").innerHTML = `${endereco[0].rua} ${endereco[0].numero} ${endereco[0].complemento} ${endereco[0].bairro} ${endereco[0].cidade} ${endereco[0].estado}`;
                 //Envia os valores para a API
                 if(detalhesServico.categoria == "Barco"){
                     document.getElementById("form-pedido").insertAdjacentHTML("afterbegin", `

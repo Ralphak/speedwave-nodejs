@@ -32,7 +32,7 @@ router.get('/api/buscar/:tabela', (req, res)=>{
 //Inclui um formulário no banco de dados (método geral). Suporta ?redirect=
 router.post('/api/incluir/:tabela', (req, res)=>{
     if(req.body.senha){
-        //req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+        req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
     }
     mysql.query("insert into " + req.params.tabela + " set ?", req.body, (err, results)=>{
         if(err){
@@ -51,7 +51,11 @@ router.post('/api/incluir/:tabela', (req, res)=>{
 
 //Inclui um cadastro de empresa no banco de dados.
 router.post('/api/cadastrar/empresa', (req, res)=>{
-    //req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    let pasta = `/empresas/${req.body.cnpj}/`;
+    Object.keys(req.files).map(nome =>{
+        req.files[nome].name = nome + "." + req.files[nome].name.split('.').pop();
+    });
     let dadosEmpresa = {
             razao : req.body.razao, 
             cnpj : req.body.cnpj, 
@@ -60,7 +64,8 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             telefone : req.body.telefone, 
             email : req.body.email, 
             senha : req.body.senha,
-            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype
+            documento1 : pasta + req.files.documento1.name,
+            documento2 : pasta + req.files.documento2.name
         }, 
         dadosEndereco = {
             rua : req.body.rua, 
@@ -69,8 +74,7 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             cep : req.body.cep, 
             bairro : req.body.bairro, 
             cidade : req.body.cidade, 
-            estado : req.body.estado, 
-            pais : req.body.pais
+            estado : req.body.estado
         }, 
         dadosPagamento = {
             titular : req.body.titular, 
@@ -118,6 +122,8 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
+                            ftp.upload(req.files, pasta);
+                            nodemailer.enviarMensagem(req.body.email, "Cadastro em análise", `Seu pedido de cadastro da empresa ${req.body.razao} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
                             res.redirect('/#sucesso');
                         });
                     });
@@ -183,6 +189,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
+                        nodemailer.enviarMensagem(req.user.email, "Registro de embarcação em análise", `Seu pedido de cadastro da embarcação ${req.body.nome} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
                         res.redirect('/#lista-embarcacoes');
                     });
                 });
@@ -193,7 +200,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
 
 //Inclui um cadastro de cliente no banco de dados.
 router.post('/api/cadastrar/cliente', (req, res)=>{
-    //req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
     let dadosCliente = {
             nome : req.body.nome, 
             cpf : req.body.cpf, 
@@ -211,8 +218,7 @@ router.post('/api/cadastrar/cliente', (req, res)=>{
             cep : req.body.cep, 
             bairro : req.body.bairro, 
             cidade : req.body.cidade, 
-            estado : req.body.estado, 
-            pais : req.body.pais
+            estado : req.body.estado
         };
         mysql.getConnection((err, conn)=>{
             if(err){
@@ -245,6 +251,7 @@ router.post('/api/cadastrar/cliente', (req, res)=>{
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
+                            nodemailer.enviarMensagem(req.body.email, "Bem vindo à Speed Wave", `${req.body.nome}, seu cadastro foi efeutado com sucesso!<br><br>Você já pode logar no site usando o login e senha cadastrados.`);
                             res.redirect('/#sucesso');
                         });
                     });
@@ -354,6 +361,7 @@ router.get('/getnet/registrar', (req, res)=>{
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
+                    nodemailer.enviarMensagem(req.user.email, "Compra efetuada", `Prezado ${req.user.nome},<br><br>Sua última compra no valor de R$${bitmask[3]} foi confirmada. Você pode conferir os detalhes na aba "Meus Serviços" do site, após realizar o login.`);
                     res.redirect('/#sucesso');
                 });
             });
@@ -364,11 +372,6 @@ router.get('/getnet/registrar', (req, res)=>{
 //Envia um email com o erro
 router.post('/api/erro', (req, res)=>{
     nodemailer.enviarErro(req.body.erro);
-});
-
-router.post('/api/teste', (req, res)=>{
-    ftp.uploadArquivo(req.files, "/teste/envio/");
-    res.redirect("/");
 });
 
 

@@ -2,7 +2,7 @@ const ftp = require("basic-ftp"),
     fs = require("fs"),
     rimraf = require("rimraf");
 
-module.exports.uploadArquivo = async(arquivos, pasta)=>{
+module.exports.upload = async(arquivos, pasta)=>{
     let pastaTemp = "temp_" + Math.random().toString(36).substring(2);
     fs.mkdirSync(pastaTemp + pasta, { recursive: true });
     Object.values(arquivos).forEach(arquivo => {

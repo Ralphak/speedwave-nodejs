@@ -57,7 +57,7 @@ function login(req, username, password, done, _tabela, _chave){
       return done(null, false, req.flash('message', 'Usuário não encontrado.'));
     }
     // Usuário existe mas a senha está errada, logar o erro
-    //password = crypto.createHash('sha256').update(password).digest('base64');
+    password = crypto.createHash('sha256').update(password).digest('base64');
     if (password != user.senha){
       return done(null, false, req.flash('message', 'Senha incorreta.'));
     }

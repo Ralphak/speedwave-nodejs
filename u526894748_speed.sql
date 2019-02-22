@@ -1,9 +1,9 @@
 -- phpMyAdmin SQL Dump
--- version 4.8.4
+-- version 4.8.5
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 10/01/2019 às 00:13
+-- Tempo de geração: 21/02/2019 às 22:59
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -164,7 +164,8 @@ CREATE TABLE `embarcacao` (
   `fk_empbarco` int(11) NOT NULL,
   `valor` double DEFAULT NULL,
   `documento1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `documento2` longtext COLLATE utf8_unicode_ci DEFAULT NULL
+  `documento2` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
+  `autorizado` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -183,7 +184,8 @@ CREATE TABLE `empresabarco` (
   `email` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `documento1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `documento2` longtext COLLATE utf8_unicode_ci DEFAULT NULL
+  `documento2` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
+  `autorizado` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -210,13 +212,12 @@ CREATE TABLE `endemp` (
   `id` int(11) NOT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `numero` int(5) DEFAULT NULL,
+  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cep` int(8) DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `numero` int(5) DEFAULT NULL,
-  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -229,13 +230,12 @@ CREATE TABLE `endereco` (
   `id` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `numero` int(5) DEFAULT NULL,
+  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cep` int(8) DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `pais` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `numero` int(5) DEFAULT NULL,
-  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -319,16 +319,15 @@ CREATE TABLE `socio` (
   `cpf` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `data_nasc` date DEFAULT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `numero` int(5) DEFAULT NULL,
+  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `cep` int(8) DEFAULT NULL,
   `bairro` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cidade` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `usu` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `cep` int(8) DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
-  `altoAcesso` tinyint(1) DEFAULT NULL,
-  `numero` int(5) DEFAULT NULL,
-  `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+  `altoAcesso` tinyint(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -403,7 +402,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEF
 --
 DROP TABLE IF EXISTS `aluguelbarco_cliente`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`pagamentos`.`valor` AS `valor`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `pagamentos`.`fk_usuario` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`pagamentos`.`valor` AS `valor`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `pagamentos`.`id` ;
 
 -- --------------------------------------------------------
 
@@ -466,13 +465,15 @@ ALTER TABLE `bancoempbarco`
 --
 ALTER TABLE `embarcacao`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `numero` (`numero`),
   ADD KEY `fk_barco_emp` (`fk_empbarco`);
 
 --
 -- Índices de tabela `empresabarco`
 --
 ALTER TABLE `empresabarco`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `cnpj` (`cnpj`);
 
 --
 -- Índices de tabela `empresadetalhes`
@@ -525,6 +526,7 @@ ALTER TABLE `passageiros`
 --
 ALTER TABLE `socio`
   ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `cpf` (`cpf`),
   ADD KEY `fk_empresa` (`fk_empresa`);
 
 --
@@ -538,7 +540,8 @@ ALTER TABLE `tripulantes`
 -- Índices de tabela `usuario`
 --
 ALTER TABLE `usuario`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `login` (`login`);
 
 --
 -- AUTO_INCREMENT de tabelas apagadas
