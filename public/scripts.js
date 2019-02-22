@@ -616,8 +616,7 @@ function gerarTabela (dados, cabecalhos){
 function gerarCards(divID, lista, campoFoto, link){
     document.getElementById(divID).innerHTML = "";
     for(let i=0; i<lista.length; i++){
-        let extensao = `${lista[i][campoFoto]}`.split("."),
-            titulo, descricao;
+        let titulo, descricao;
         switch(divID){
             case "cards-barcos":
                 titulo = lista[i].nome;
@@ -637,7 +636,7 @@ function gerarCards(divID, lista, campoFoto, link){
         }
         document.getElementById(divID).insertAdjacentHTML("beforeend", `
             <a ${link}><div class="card m-1" id="${i}">
-                <img class="card-img-top" src="data:${extensao[1]};base64, ${extensao[0]}">
+                <img class="card-img-top" src="${process.env.FTP_PATH + lista[i][campoFoto]}">
                 <p class="card-text text-center">${titulo}<br><small class="text-muted">${descricao}</small></p>
             </div></a>
         `);
@@ -666,8 +665,7 @@ function gerarModal(lista, i, cabecalhos, fotos=[]){
     if(fotos.length > 0){
         modalBody += `<p><b>Fotos:</b></p><div class="row">`;
         fotos.forEach(foto =>{
-            let fotoSplit = `${lista[i][foto]}`.split(".");
-            modalBody += `<img class="img-anexo" src="data:${fotoSplit[1]};base64, ${fotoSplit[0]}">`;
+            modalBody += `<img class="img-anexo" src="${process.env.FTP_PATH + lista[i][foto]}">`;
         });
         modalBody += `</div>`;
     }

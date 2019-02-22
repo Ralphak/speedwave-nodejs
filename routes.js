@@ -135,6 +135,10 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
 
 //Inclui um cadastro de embarcação no banco de dados.
 router.post('/api/cadastrar/embarcacao', (req, res)=>{
+    let pasta = `/embarcacoes/${req.body.numero}/`;
+    Object.keys(req.files).map(nome =>{
+        req.files[nome].name = nome + "." + req.files[nome].name.split('.').pop();
+    });
     let dadosEmbarcacao = {
             nome : req.body.nome, 
             categoria : req.body.categoria, 
@@ -148,15 +152,15 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             cidade : req.body.cidade,
             fk_empbarco : req.body.fk_empbarco,
             valor: req.body.valor,
-            documento1 : req.files.documento1.data.toString("base64")+'.'+req.files.documento1.mimetype,
-            documento2 : req.files.documento2.data.toString("base64")+'.'+req.files.documento1.mimetype
+            documento1 : pasta + req.files.documento1.name,
+            documento2 : pasta + req.files.documento2.name
         }, fotosEmbarcacao = {
-            proa : req.files.proa.data.toString("base64")+'.'+req.files.proa.mimetype, 
-            popa : req.files.popa.data.toString("base64")+'.'+req.files.popa.mimetype, 
-            traves : req.files.traves.data.toString("base64")+'.'+req.files.traves.mimetype, 
-            interior1 : req.files.interior1.data.toString("base64")+'.'+req.files.interior1.mimetype, 
-            interior2 : req.files.interior2.data.toString("base64")+'.'+req.files.interior2.mimetype, 
-            interior3 : req.files.interior3.data.toString("base64")+'.'+req.files.interior3.mimetype
+            proa : pasta + req.files.proa.name, 
+            popa : pasta + req.files.popa.name, 
+            traves : pasta + req.files.traves.name, 
+            interior1 : pasta + req.files.interior1.name, 
+            interior2 : pasta + req.files.interior2.name, 
+            interior3 : pasta + req.files.interior3.name
         };
     mysql.getConnection((err, conn)=>{
         if(err){
@@ -189,6 +193,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
                             conn.rollback(()=>{res.send(err.stack);});
                             return;
                         }
+                        ftp.upload(req.files, pasta);
                         nodemailer.enviarMensagem(req.user.email, "Registro de embarcação em análise", `Seu pedido de cadastro da embarcação ${req.body.nome} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
                         res.redirect('/#lista-embarcacoes');
                     });

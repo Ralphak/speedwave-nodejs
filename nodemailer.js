@@ -4,7 +4,7 @@ var transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'speedwave.suporte',
-        pass: 'SpeedWave123'
+        pass: process.env.EMAIL_PASS
     }
 });
 
