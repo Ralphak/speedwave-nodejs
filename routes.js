@@ -32,7 +32,7 @@ router.get('/api/buscar/:tabela', (req, res)=>{
 //Inclui um formulário no banco de dados (método geral). Suporta ?redirect=
 router.post('/api/incluir/:tabela', (req, res)=>{
     if(req.body.senha){
-        req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+        req.body.senha = crypto.createHash('sha1').update(req.body.senha).digest('base64');
     }
     mysql.query("insert into " + req.params.tabela + " set ?", req.body, (err, results)=>{
         if(err){
@@ -51,8 +51,7 @@ router.post('/api/incluir/:tabela', (req, res)=>{
 
 //Inclui um cadastro de empresa no banco de dados.
 router.post('/api/cadastrar/empresa', (req, res)=>{
-    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
-    let pasta = `/empresas/${req.body.cnpj}/`;
+    req.body.senha = crypto.createHash('sha1').update(req.body.senha).digest('base64');
     Object.keys(req.files).map(nome =>{
         req.files[nome].name = nome + "." + req.files[nome].name.split('.').pop();
     });
@@ -63,9 +62,7 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
             data_inicio : req.body.data_inicio, 
             telefone : req.body.telefone, 
             email : req.body.email, 
-            senha : req.body.senha,
-            documento1 : pasta + req.files.documento1.name,
-            documento2 : pasta + req.files.documento2.name
+            senha : req.body.senha
         }, 
         dadosEndereco = {
             rua : req.body.rua, 
@@ -122,7 +119,7 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
                                 conn.rollback(()=>{res.send(err.stack);});
                                 return;
                             }
-                            ftp.upload(req.files, pasta);
+                            ftp.upload(req.files, `/empresas/${idEmpresa}/`);
                             nodemailer.enviarMensagem(req.body.email, "Cadastro em análise", `Seu pedido de cadastro da empresa ${req.body.razao} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
                             res.redirect('/#sucesso');
                         });
@@ -135,7 +132,6 @@ router.post('/api/cadastrar/empresa', (req, res)=>{
 
 //Inclui um cadastro de embarcação no banco de dados.
 router.post('/api/cadastrar/embarcacao', (req, res)=>{
-    let pasta = `/embarcacoes/${req.body.numero}/`;
     Object.keys(req.files).map(nome =>{
         req.files[nome].name = nome + "." + req.files[nome].name.split('.').pop();
     });
@@ -151,16 +147,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
             area_nav : req.body.area_nav,
             cidade : req.body.cidade,
             fk_empbarco : req.body.fk_empbarco,
-            valor: req.body.valor,
-            documento1 : pasta + req.files.documento1.name,
-            documento2 : pasta + req.files.documento2.name
-        }, fotosEmbarcacao = {
-            proa : pasta + req.files.proa.name, 
-            popa : pasta + req.files.popa.name, 
-            traves : pasta + req.files.traves.name, 
-            interior1 : pasta + req.files.interior1.name, 
-            interior2 : pasta + req.files.interior2.name, 
-            interior3 : pasta + req.files.interior3.name
+            valor: req.body.valor
         };
     mysql.getConnection((err, conn)=>{
         if(err){
@@ -180,23 +167,15 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
-                fotosEmbarcacao.fk_embar = results.insertId;
-                conn.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
+                conn.commit((err)=>{
                     if(err){
                         nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    conn.commit((err)=>{
-                        if(err){
-                            nodemailer.enviarErro(err.stack);
-                            conn.rollback(()=>{res.send(err.stack);});
-                            return;
-                        }
-                        ftp.upload(req.files, pasta);
-                        nodemailer.enviarMensagem(req.user.email, "Registro de embarcação em análise", `Seu pedido de cadastro da embarcação ${req.body.nome} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
-                        res.redirect('/#lista-embarcacoes');
-                    });
+                    ftp.upload(req.files, `/embarcacoes/${results.insertId}/`);
+                    nodemailer.enviarMensagem(req.user.email, "Registro de embarcação em análise", `Seu pedido de cadastro da embarcação ${req.body.nome} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
+                    res.redirect('/#lista-embarcacoes');
                 });
             });
         });
@@ -205,7 +184,7 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
 
 //Inclui um cadastro de cliente no banco de dados.
 router.post('/api/cadastrar/cliente', (req, res)=>{
-    req.body.senha = crypto.createHash('sha256').update(req.body.senha).digest('base64');
+    req.body.senha = crypto.createHash('sha1').update(req.body.senha).digest('base64');
     let dadosCliente = {
             nome : req.body.nome, 
             cpf : req.body.cpf, 
@@ -377,6 +356,11 @@ router.get('/getnet/registrar', (req, res)=>{
 //Envia um email com o erro
 router.post('/api/erro', (req, res)=>{
     nodemailer.enviarErro(req.body.erro);
+});
+
+//Recebe a senha do administrador para validação
+router.get('/api/validaradmin', (req, res)=>{
+    res.json(process.env.ADMIN_PASS);
 });
 
 

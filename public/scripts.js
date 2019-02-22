@@ -82,6 +82,18 @@ function carregarPagina(pagina){
     //Carrega a página, adicionando parâmetros para páginas específicas
     $("#div-content").load(`${pagina}.html`, async()=>{
         switch(pagina){
+            case "admin":
+                document.getElementById("admin-senha").addEventListener("submit", async(e)=>{
+                    e.preventDefault();
+                    let senhaAdmin = await recuperarDados("/api/validaradmin");
+                    if(e.target[0].value != senhaAdmin){
+                        document.getElementById("erro-senha").removeAttribute("hidden","");
+                    } else{
+                        document.body.insertAdjacentHTML("beforeend", "Teste bem sucedido");
+                        document.getElementById("admin-senha").remove();
+                    }
+                });
+                break;
             case "cadastro-cliente":
             case "cadastro-empresa":
                 confirmarSenha();
@@ -95,7 +107,7 @@ function carregarPagina(pagina){
                 let embarcacoesServico = await recuperarDados(`/api/buscar/embarcacao
                         ?colunas=id,nome,categoria,max_passageiros,max_tripulantes
                         &filtro=where fk_empbarco=${usuario.id} order by nome`),
-                    opcoesEmbarcacao = document.getElementsByName("fk_embarcacao")[0],
+                    selectEmbarcacao = document.getElementsByName("fk_embarcacao")[0],
                     formServico = document.getElementById("form-servico");
                 //Encerra se a lista estiver vazia
                 if(embarcacoesServico.length == 0){
@@ -111,14 +123,14 @@ function carregarPagina(pagina){
                     } else{
                         tipoServico = "Aluguel de "+embarcacao.categoria;
                     }
-                    opcoesEmbarcacao.insertAdjacentHTML("beforeend", `
+                    selectEmbarcacao.insertAdjacentHTML("beforeend", `
                         <option value="${embarcacao.id}" data-categoria="${embarcacao.categoria}">${embarcacao.nome} - ${tipoServico} - ${embarcacao.max_passageiros} passageiros</option>
                     `);
                 });
                 formServico.removeAttribute("hidden");
                 //Muda o URL do POST de acordo com a embarcação
                 let setActionURL = function(){
-                    let categoria = opcoesEmbarcacao.options[opcoesEmbarcacao.selectedIndex].dataset.categoria;
+                    let categoria = selectEmbarcacao.options[selectEmbarcacao.selectedIndex].dataset.categoria;
                     if(categoria == "Barco"){
                         formServico.action="/api/incluir/aluguelbarco?redirect=lista-servicos";
                     } else{
@@ -126,7 +138,7 @@ function carregarPagina(pagina){
                     }
                 }
                 setActionURL();
-                opcoesEmbarcacao.addEventListener("change", setActionURL);
+                selectEmbarcacao.addEventListener("change", setActionURL);
                 //Validação da data
                 document.getElementsByName("data_aluguel")[0].addEventListener("change", (e)=>{
                     if(new Date(e.currentTarget.value).setHours(0,0,0,0) <= new Date().setHours(0,0,0,0)){

@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 21/02/2019 às 22:59
+-- Tempo de geração: 22/02/2019 às 14:06
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -163,8 +163,6 @@ CREATE TABLE `embarcacao` (
   `cidade` varchar(50) COLLATE utf8_unicode_ci NOT NULL,
   `fk_empbarco` int(11) NOT NULL,
   `valor` double DEFAULT NULL,
-  `documento1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `documento2` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `autorizado` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -183,8 +181,6 @@ CREATE TABLE `empresabarco` (
   `telefone` bigint(20) DEFAULT NULL,
   `email` varchar(100) COLLATE utf8_unicode_ci DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
-  `documento1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `documento2` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
   `autorizado` tinyint(1) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
@@ -253,23 +249,6 @@ CREATE TABLE `extrato` (
 ,`nome` varchar(255)
 ,`cliente` varchar(255)
 );
-
--- --------------------------------------------------------
-
---
--- Estrutura para tabela `fotoembar`
---
-
-CREATE TABLE `fotoembar` (
-  `id` int(11) NOT NULL,
-  `fk_embar` int(11) NOT NULL,
-  `proa` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `popa` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `traves` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `interior1` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `interior2` longtext COLLATE utf8_unicode_ci DEFAULT NULL,
-  `interior3` longtext COLLATE utf8_unicode_ci DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -498,13 +477,6 @@ ALTER TABLE `endereco`
   ADD KEY `fk_usu_end` (`fk_usuario`);
 
 --
--- Índices de tabela `fotoembar`
---
-ALTER TABLE `fotoembar`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_embar` (`fk_embar`);
-
---
 -- Índices de tabela `pagamentos`
 --
 ALTER TABLE `pagamentos`
@@ -596,12 +568,6 @@ ALTER TABLE `endereco`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT de tabela `fotoembar`
---
-ALTER TABLE `fotoembar`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT de tabela `pagamentos`
 --
 ALTER TABLE `pagamentos`
@@ -674,12 +640,6 @@ ALTER TABLE `endemp`
 --
 ALTER TABLE `endereco`
   ADD CONSTRAINT `fk_usu_end` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Restrições para tabelas `fotoembar`
---
-ALTER TABLE `fotoembar`
-  ADD CONSTRAINT `fk_foto_embar` FOREIGN KEY (`fk_embar`) REFERENCES `embarcacao` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `pagamentos`

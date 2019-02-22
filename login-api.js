@@ -51,16 +51,18 @@ function login(req, username, password, done, _tabela, _chave){
     if (err){
       return done(err);
     }
-    user = user.pop();
     // Nome de usuário não existe, logar o erro & redirecione de volta
+    user = user.pop();
     if (!user){
       return done(null, false, req.flash('message', 'Usuário não encontrado.'));
     }
     // Usuário existe mas a senha está errada, logar o erro
-    password = crypto.createHash('sha256').update(password).digest('base64');
+    password = crypto.createHash('sha1').update(password).digest('base64');
     if (password != user.senha){
       return done(null, false, req.flash('message', 'Senha incorreta.'));
     }
+    // Contas não confirmadas
+
     // Tanto usuário e senha estão corretos, retorna usuário através do método done, e agora será considerado um sucesso
     return done(null, user);
   });
