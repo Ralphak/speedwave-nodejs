@@ -1,10 +1,11 @@
-var usuario, endereco, linkAtivo, linkRedirect, listaAlugueis, listaAlugueisCliente, listaBarcos, listaExtrato, listaPasseios, listaPasseiosCliente, listaSocios, detalhesServico;
+var usuario, endereco, ftpPath, linkAtivo, linkRedirect, listaAlugueis, listaAlugueisCliente, listaBarcos, listaExtrato, listaPasseios, listaPasseiosCliente, listaSocios, detalhesServico;
 
 
 //Eventos que devem ocorrer assim que o site é carregado
 document.addEventListener("DOMContentLoaded", async()=>{
-    //recuperar dados de usuário
+    //recuperar dados
     usuario = await recuperarDados("/api/dados/usuario");
+    ftpPath = await recuperarDados("/api/env/ftpPath");
 
     //alterar menus com base no login, exibindo a página ao finalizar
     let menuUsuario = document.getElementById("menu-usuario");
@@ -85,13 +86,56 @@ function carregarPagina(pagina){
             case "admin":
                 document.getElementById("admin-senha").addEventListener("submit", async(e)=>{
                     e.preventDefault();
-                    let senhaAdmin = await recuperarDados("/api/validaradmin");
+                    //Validar senha
+                    let senhaAdmin = await recuperarDados("/api/env/admin");
                     if(e.target[0].value != senhaAdmin){
                         document.getElementById("erro-senha").removeAttribute("hidden","");
-                    } else{
-                        document.body.insertAdjacentHTML("beforeend", "Teste bem sucedido");
-                        document.getElementById("admin-senha").remove();
+                        return;
                     }
+                    //Obter dados
+                    let empresasPendentes = await recuperarDados(`/api/buscar/empresabarco
+                            ?filtro=join endemp on endemp.fk_empresa=empresabarco.id
+                            where autorizado=0`),
+                        barcosPendentes = await recuperarDados(`/api/buscar/embarcacao
+                            ?filtro=where autorizado=0`),
+                        cabecalhosEmpresas = [], cabecalhosBarcos = [];
+                    //Empresas
+                    if(empresasPendentes.length > 0){
+                        Object.keys(empresasPendentes[0]).map(nome=>{
+                            if(nome!="id" && nome!="fk_empresa" && nome!="autorizado"){
+                                cabecalhosEmpresas.push(nome);
+                            }
+                        });
+                        empresasPendentes.forEach(empresa=>{
+                            empresa.campoAutorizar="";
+                        });
+                    }
+                    //Barcos
+                    if(barcosPendentes.length > 0){
+                        Object.keys(barcosPendentes[0]).map(nome=>{
+                            if(nome!="id" && nome!="fk_empbarco" && nome!="autorizado"){
+                                cabecalhosBarcos.push(nome);
+                            }
+                        });
+                        barcosPendentes.forEach(barco=>{
+                            barco.campoAutorizar="";
+                        });
+                    }
+                    //Geração das tabelas
+                    document.getElementById("admin-tabelas").removeAttribute("hidden","");
+                    document.getElementById("tabela-admin-empresas").innerHTML = gerarTabela(empresasPendentes, cabecalhosEmpresas);
+                    document.getElementById("tabela-admin-barcos").innerHTML = gerarTabela(barcosPendentes, cabecalhosBarcos);
+                    document.querySelectorAll("input[type=radio]").forEach(radio=>{
+                        radio.addEventListener("click", (e)=>{
+                            let justificativa = document.getElementsByName(`justificativa_${radio.name.split('_').pop()}`)[0];
+                            if(e.currentTarget.value==0){
+                                justificativa.removeAttribute("hidden","");
+                            } else{
+                                justificativa.setAttribute("hidden","");
+                            }
+                        });
+                    });
+                    document.getElementById("admin-senha").remove();
                 });
                 break;
             case "cadastro-cliente":
@@ -257,7 +301,6 @@ function carregarPagina(pagina){
 
             case "lista-embarcacoes":
                 if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao?filtro=
-                    join fotoembar on embarcacao.id=fotoembar.fk_embar 
                     where fk_empbarco=${usuario.id} 
                     order by nome, categoria`);
                 //Encerra se a lista estiver vazia
@@ -415,15 +458,13 @@ function carregarPagina(pagina){
                     document.getElementById("area-cliente").removeAttribute("hidden");
                     //Obtenção dos serviços do banco de dados
                     if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
-                        ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros, fotoembar.traves
-                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
-                        join fotoembar on fk_embarcacao=fotoembar.fk_embar 
+                        ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros
+                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id
                         where status="Ativo"
                     `);
                     if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
-                        ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, fotoembar.traves
-                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id 
-                        join fotoembar on fk_embarcacao=fotoembar.fk_embar
+                        ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade
+                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id
                         where status="Ativo"
                     `);
                     //Exibição dos aluguéis
@@ -554,7 +595,6 @@ function gerarTabela (dados, cabecalhos){
         return "<td>Nenhum registro encontrado.</td>";
     }
     //Cabeçalho
-    //let tabela=`<thead><tr><th></th>`;
     let tabela=`<thead><tr>`;
     cabecalhos.forEach(nome =>{
         tabela+=`<th scope="col">${nome}</th>`;
@@ -562,13 +602,10 @@ function gerarTabela (dados, cabecalhos){
     tabela+="</tr></thead><tbody>";
     //Valores
     dados.forEach(dado =>{
-        /* tabela+=`<tr><td>
-            <i class="fas fa-edit" id="alterar-${dado.id}"></i>
-            <i class="fas fa-times" id="excluir-${dado.id}"></i>
-            </td>`; */
         tabela+=`<tr>`;
         Object.keys(dado).map(valor =>{
             switch(valor){
+                case "autorizado":
                 case "id":
                 case "fk_embarcacao":
                 case "fk_empresa":
@@ -577,6 +614,23 @@ function gerarTabela (dados, cabecalhos){
                 case "fk_pagamento":
                 case "max_passageiros":
                     break;
+                case "campoAutorizar":
+                    let urlArquivos = ftpPath, categoria;
+                    if(dados[0].razao){
+                        urlArquivos += "/empresas/" + dado.id;
+                        categoria = "empresa";
+                    } else{
+                        urlArquivos += "/barcos/" + dado.id;
+                        categoria = "barco";
+                    }
+                    tabela+=`<td>
+                        <input type="radio" name="radio_${categoria}-${dado.id}" value=1> Sim
+                        <input type="radio" name="radio_${categoria}-${dado.id}" value=0> Não
+                        <input name="justificativa_${categoria}-${dado.id}" placeholder="Justificativa" maxlength="255" hidden>
+                        <button class="btn btn-primary btn-sm" onclick="window.open('${urlArquivos}');" id="${dado.id}">Ver Documentação</button>
+                        </td>`;
+                    break;
+                case "data_inicio":
                 case "data_nasc":
                     tabela+=`<td>${formatarData(dado[valor])}</td>`;
                     break;
@@ -648,7 +702,7 @@ function gerarCards(divID, lista, campoFoto, link){
         }
         document.getElementById(divID).insertAdjacentHTML("beforeend", `
             <a ${link}><div class="card m-1" id="${i}">
-                <img class="card-img-top" src="${process.env.FTP_PATH + lista[i][campoFoto]}">
+                <img class="card-img-top" src="${ftpPath + lista[i][campoFoto]}">
                 <p class="card-text text-center">${titulo}<br><small class="text-muted">${descricao}</small></p>
             </div></a>
         `);
@@ -677,7 +731,7 @@ function gerarModal(lista, i, cabecalhos, fotos=[]){
     if(fotos.length > 0){
         modalBody += `<p><b>Fotos:</b></p><div class="row">`;
         fotos.forEach(foto =>{
-            modalBody += `<img class="img-anexo" src="${process.env.FTP_PATH + lista[i][foto]}">`;
+            modalBody += `<img class="img-anexo" src="${ftpPath + lista[i][foto]}">`;
         });
         modalBody += `</div>`;
     }

@@ -358,10 +358,23 @@ router.post('/api/erro', (req, res)=>{
     nodemailer.enviarErro(req.body.erro);
 });
 
-//Recebe a senha do administrador para validação
-router.get('/api/validaradmin', (req, res)=>{
-    res.json(process.env.ADMIN_PASS);
+//Recebe a variável de ambiente escolhida
+router.get('/api/env/:var', (req, res)=>{
+    let variavel;
+    switch(req.params.var){
+        case "admin":
+            variavel = process.env.ADMIN_PASS;
+            break;
+        case "ftpPath":
+            variavel = process.env.FTP_PATH;
+            break;
+    }
+    res.json(variavel);
 });
 
+//Salva as confirmações feitas pelo administrador
+router.post('/admin/autorizar', (req, res)=>{
+    res.send(req.body);
+});
 
 module.exports = router;

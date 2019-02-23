@@ -3,3 +3,19 @@
     <button type="submit">Entrar</button>
     <label id="erro-senha" class="text-danger" hidden>Senha incorreta!</label>
 </form>
+
+<form id="admin-tabelas" method="post" action="/admin/autorizar" hidden>
+    <h3>Empresas</h3>
+    <div class="table-responsive">
+        <table id="tabela-admin-empresas" class="table table-striped table-light">
+            <td>Carregando...</td>
+        </table>
+    </div>
+    <h3>Embarcações</h3>
+    <div class="table-responsive">
+        <table id="tabela-admin-barcos" class="table table-striped table-light">
+            <td>Carregando...</td>
+        </table>
+    </div>
+    <button type="submit">Confirmar Ações</button>
+</form>

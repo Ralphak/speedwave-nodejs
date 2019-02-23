@@ -46,7 +46,7 @@ function login(req, username, password, done, _tabela, _chave){
   tabela = _tabela;
   chave = _chave;
   // Verifica se o usuário existe ou não
-  mysql.query(`select ${chave}, senha from ${tabela} where ${chave}="${username}" limit 1`, (err, user)=>{
+  mysql.query(`select * from ${tabela} where ${chave}="${username}" limit 1`, (err, user)=>{
     // Em caso de erro, retorne usando o método done
     if (err){
       return done(err);
@@ -62,7 +62,9 @@ function login(req, username, password, done, _tabela, _chave){
       return done(null, false, req.flash('message', 'Senha incorreta.'));
     }
     // Contas não confirmadas
-
+    if(tabela == "empresabarco" && !user.autorizado){
+      return done(null, false, req.flash('message', 'Conta aguardando aprovação.'));
+    }
     // Tanto usuário e senha estão corretos, retorna usuário através do método done, e agora será considerado um sucesso
     return done(null, user);
   });
