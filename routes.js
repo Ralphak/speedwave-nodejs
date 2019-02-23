@@ -374,7 +374,97 @@ router.get('/api/env/:var', (req, res)=>{
 
 //Salva as confirmações feitas pelo administrador
 router.post('/admin/autorizar', (req, res)=>{
-    res.send(req.body);
+    let empresasAprovadas=[], barcosAprovados=[], empresasRecusadas={}, barcosRecusados={}, idRecusado;
+    //Organizar dados nos arrays
+    Object.entries(req.body).forEach(itemForm=>{
+        let atributosNome = itemForm[0].split(/[_-]/);
+        if(atributosNome[0] == "radio"){
+            if(atributosNome[1] == "empresa"){
+                if(itemForm[1] == 1) empresasAprovadas.push(atributosNome[2]);
+                else idRecusado = atributosNome[2];
+            }
+            else if(atributosNome[1] == "barco"){
+                if(itemForm[1] == 1) barcosAprovados.push(atributosNome[2]);
+                else idRecusado = atributosNome[2];
+            }
+        } else if(atributosNome[0] == "justificativa"){
+            if(atributosNome[1] == "empresa") empresasRecusadas[idRecusado] = itemForm[1];
+            else if(atributosNome[1] == "barco") barcosRecusados[idRecusado] = itemForm[1];
+        }
+    });
+    //Autorizar empresas aprovadas
+    if(empresasAprovadas.length > 0){
+        mysql.query(`update empresabarco set autorizado=1 where id in(${empresasAprovadas})`, (err, results)=>{
+            if(err){
+                nodemailer.enviarErro(err.stack);
+                res.send(err.stack);
+                return;
+            }
+            mysql.query(`select razao, email from empresabarco where id in(${empresasAprovadas})`, (err, results)=>{
+                results.forEach(result=>{
+                    nodemailer.enviarMensagem(result.email, "Sua empresa foi aprovada", `${result.razao},<br><br>A sua empresa foi aprovada em nosso site! Você já pode logar usando o CNPJ/MEI e senha cadastrados!`);
+                });
+            });
+        });
+    }
+    //Autorizar barcos aprovados
+    if(barcosAprovados.length > 0){
+        mysql.query(`update embarcacao set autorizado=1 where id in(${barcosAprovados})`, (err, results)=>{
+            if(err){
+                nodemailer.enviarErro(err.stack);
+                res.send(err.stack);
+                return;
+            }
+            mysql.query(`select nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where id in(${barcosAprovados})`, (err, results)=>{
+                results.forEach(result=>{
+                    nodemailer.enviarMensagem(result.empresabarco.email, "Sua embarcação foi aprovada", `${result.empresabarco.razao},<br><br>A sua embarcação de nome ${result.nome} foi aprovada e adicionada à sua conta!`);
+                });
+            });
+        });
+    }
+    //Excluir empresas recusadas
+    if(Object.keys(empresasRecusadas).length > 0){
+        mysql.query(`select id, razao, email from empresabarco where id in(${Object.keys(empresasRecusadas)})`, (err, results)=>{
+            if(err){
+                nodemailer.enviarErro(err.stack);
+                res.send(err.stack);
+                return;
+            }
+            mysql.query(`delete from empresabarco where id in(${Object.keys(empresasRecusadas)})`, (err)=>{
+                if(err){
+                    nodemailer.enviarErro(err.stack);
+                    res.send(err.stack);
+                    return;
+                }
+                results.forEach(result=>{
+                    ftp.delete(`/empresas/${result.id}`);
+                    nodemailer.enviarMensagem(result.email, "Sua empresa foi recusada", `${result.razao},<br><br>A sua empresa foi recusada em nosso site.<br><br>Motivo: ${empresasRecusadas[result.id]}<br><br>Seu cadastro foi excluído para que possa refazê-lo com as informações corretas.`);
+                });
+            });
+        });
+    }
+    //Excluir barcos recusados
+    if(Object.keys(barcosRecusados).length > 0){
+        mysql.query(`select id, nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where id in(${Object.keys(barcosRecusados)})`, (err, results)=>{
+            if(err){
+                nodemailer.enviarErro(err.stack);
+                res.send(err.stack);
+                return;
+            }
+            mysql.query(`delete from embarcacao where id in(${Object.keys(barcosRecusados)})`, (err)=>{
+                if(err){
+                    nodemailer.enviarErro(err.stack);
+                    res.send(err.stack);
+                    return;
+                }
+                results.forEach(result=>{
+                    ftp.delete(`/embarcacoes/${result.id}`);
+                    nodemailer.enviarMensagem(result.empresabarco.email, "Sua embarcação foi recusada", `${result.empresabarco.razao},<br><br>A sua embarcação de nome ${result.nome} foi recusada em nosso site.<br><br>Motivo: ${barcosRecusados[result.id]}<br><br>O cadastro da embarcação foi excluído para que possa refazê-lo com as informações corretas.`);
+                });
+            });
+        });
+    }
+    res.redirect('/#admin');
 });
 
 module.exports = router;

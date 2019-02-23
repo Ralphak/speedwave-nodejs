@@ -127,11 +127,12 @@ function carregarPagina(pagina){
                     document.getElementById("tabela-admin-barcos").innerHTML = gerarTabela(barcosPendentes, cabecalhosBarcos);
                     document.querySelectorAll("input[type=radio]").forEach(radio=>{
                         radio.addEventListener("click", (e)=>{
-                            let justificativa = document.getElementsByName(`justificativa_${radio.name.split('_').pop()}`)[0];
+                            let justifDiv = document.getElementById(`espacoInput_${radio.name.split('_').pop()}`),
+                                justifInput = `<input name="justificativa_${radio.name.split('_').pop()}" placeholder="Justificativa" maxlength="255" required>`;
                             if(e.currentTarget.value==0){
-                                justificativa.removeAttribute("hidden","");
+                                justifDiv.innerHTML = justifInput;
                             } else{
-                                justificativa.setAttribute("hidden","");
+                                justifDiv.innerHTML = "";
                             }
                         });
                     });
@@ -563,8 +564,8 @@ async function recuperarDados (url) {
     }).done(function(msg){
         dados = msg;
     }).fail(function(msg){
-        console.log("AJAX " + msg.responseText);
-        $.post("/api/erro", {erro: "AJAX " + msg.responseText});
+        console.log(`AJAX ${msg.responseText}`);
+        $.post("/api/erro", {erro: `AJAX ${msg.responseText}`});
     });
     return dados;
 };
@@ -626,8 +627,8 @@ function gerarTabela (dados, cabecalhos){
                     tabela+=`<td>
                         <input type="radio" name="radio_${categoria}-${dado.id}" value=1> Sim
                         <input type="radio" name="radio_${categoria}-${dado.id}" value=0> Não
-                        <input name="justificativa_${categoria}-${dado.id}" placeholder="Justificativa" maxlength="255" hidden>
-                        <button class="btn btn-primary btn-sm" onclick="window.open('${urlArquivos}');" id="${dado.id}">Ver Documentação</button>
+                        <div id="espacoInput_${categoria}-${dado.id}"></div>
+                        <button type="button" class="btn btn-primary btn-sm" onclick="window.open('${urlArquivos}');" id="${dado.id}">Ver Documentação</button>
                         </td>`;
                     break;
                 case "data_inicio":

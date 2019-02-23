@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 22/02/2019 às 14:06
+-- Tempo de geração: 23/02/2019 às 22:32
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -205,8 +205,7 @@ CREATE TABLE `empresadetalhes` (
 --
 
 CREATE TABLE `endemp` (
-  `id` int(11) NOT NULL,
-  `fk_empresa` int(11) DEFAULT NULL,
+  `fk_empresa` int(11) NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `numero` int(5) DEFAULT NULL,
   `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -223,7 +222,6 @@ CREATE TABLE `endemp` (
 --
 
 CREATE TABLE `endereco` (
-  `id` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `numero` int(5) DEFAULT NULL,
@@ -466,15 +464,13 @@ ALTER TABLE `empresadetalhes`
 -- Índices de tabela `endemp`
 --
 ALTER TABLE `endemp`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_emp_end` (`fk_empresa`);
+  ADD PRIMARY KEY (`fk_empresa`);
 
 --
 -- Índices de tabela `endereco`
 --
 ALTER TABLE `endereco`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `fk_usu_end` (`fk_usuario`);
+  ADD PRIMARY KEY (`fk_usuario`);
 
 --
 -- Índices de tabela `pagamentos`
@@ -553,18 +549,6 @@ ALTER TABLE `empresabarco`
 -- AUTO_INCREMENT de tabela `empresadetalhes`
 --
 ALTER TABLE `empresadetalhes`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de tabela `endemp`
---
-ALTER TABLE `endemp`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT de tabela `endereco`
---
-ALTER TABLE `endereco`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
