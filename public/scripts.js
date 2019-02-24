@@ -151,12 +151,12 @@ function carregarPagina(pagina){
             case "cadastro-servico":
                 let embarcacoesServico = await recuperarDados(`/api/buscar/embarcacao
                         ?colunas=id,nome,categoria,max_passageiros,max_tripulantes
-                        &filtro=where fk_empbarco=${usuario.id} order by nome`),
+                        &filtro=where autorizado=1 and fk_empbarco=${usuario.id} order by nome`),
                     selectEmbarcacao = document.getElementsByName("fk_embarcacao")[0],
                     formServico = document.getElementById("form-servico");
                 //Encerra se a lista estiver vazia
                 if(embarcacoesServico.length == 0){
-                    document.getElementById("div-content").insertAdjacentHTML("beforeend", "<p>Você não possui nenhuma embarcação registrada.</p>");
+                    document.getElementById("div-content").insertAdjacentHTML("beforeend", "<p>Você não possui nenhuma embarcação registrada e aprovada.</p>");
                     break;
                 }
                 //Insere dados no formulário
@@ -301,20 +301,22 @@ function carregarPagina(pagina){
                 break;
 
             case "lista-embarcacoes":
-                if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao?filtro=
-                    where fk_empbarco=${usuario.id} 
+                if(!listaBarcos) listaBarcos = await recuperarDados(`/api/buscar/embarcacao
+                    ?filtro=join fotoembar on embarcacao.id=fotoembar.fk_embar
+                    where autorizado=1 and fk_empbarco=${usuario.id} 
                     order by nome, categoria`);
                 //Encerra se a lista estiver vazia
                 if(listaBarcos.length == 0){
                     document.getElementById("cards-barcos").innerHTML = "Nenhum registro encontrado.";
                     break;
                 }
+                console.log(listaBarcos);
                 //Insere o código HTML para cada card
                 gerarCards("cards-barcos", listaBarcos, "traves");
                 //Cria um modal quando um dos cards é clicado
                 document.querySelectorAll(".card").forEach(card =>{
                     card.addEventListener("click", (e)=>{
-                        gerarModal(listaBarcos, e.currentTarget.id, {
+                        gerarModal(listaBarcos[e.currentTarget.id], {
                             nome: "Nome",
                             categoria: "Categoria",
                             numero: "Número",
@@ -610,10 +612,11 @@ function gerarTabela (dados, cabecalhos){
                 case "id":
                 case "fk_embarcacao":
                 case "fk_empresa":
+                case "fk_empbarco":
                 case "fk_usuario":
                 case "fk_aluguelbarco":
                 case "fk_pagamento":
-                case "max_passageiros":
+                //case "max_passageiros":
                     break;
                 case "campoAutorizar":
                     let urlArquivos = ftpPath, categoria;
@@ -631,8 +634,10 @@ function gerarTabela (dados, cabecalhos){
                         <button type="button" class="btn btn-primary btn-sm" onclick="window.open('${urlArquivos}');" id="${dado.id}">Ver Documentação</button>
                         </td>`;
                     break;
+                case "data":
                 case "data_inicio":
                 case "data_nasc":
+                case "validade":
                     tabela+=`<td>${formatarData(dado[valor])}</td>`;
                     break;
                 case "data_aluguel":
@@ -712,27 +717,26 @@ function gerarCards(divID, lista, campoFoto, link){
 
 
 //Cria o corpo do modal e exibe-o na página
-function gerarModal(lista, i, cabecalhos, fotos=[]){
+function gerarModal(objeto, cabecalhos, fotos=[]){
     let modalBody="";
     //Inserir campos que não são imagens
-    Object.keys(cabecalhos).map(objeto =>{
-        let objetoValor = lista[i][objeto];
-        switch(objeto){
+    Object.keys(cabecalhos).map(nome =>{
+        switch(nome){
             case "data":
             case "validade":
-                objetoValor = formatarData(lista[i][objeto]);
+                objeto[nome] = formatarData(objeto[nome]);
                 break;
             case "valor":
-                objetoValor = formatarMoeda(lista[i][objeto]);
+                objeto[nome] = formatarMoeda(objeto[nome]);
                 break;
         }
-        modalBody += `<b>${cabecalhos[objeto]}:</b> ${objetoValor}<br>`;
+        modalBody += `<b>${cabecalhos[nome]}:</b> ${objeto[nome]}<br>`;
     });
     //Inserir imagens
     if(fotos.length > 0){
         modalBody += `<p><b>Fotos:</b></p><div class="row">`;
         fotos.forEach(foto =>{
-            modalBody += `<img class="img-anexo" src="${ftpPath + lista[i][foto]}">`;
+            modalBody += `<img class="img-anexo" src="${ftpPath + objeto[foto]}">`;
         });
         modalBody += `</div>`;
     }

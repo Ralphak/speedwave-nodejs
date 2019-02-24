@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 23/02/2019 às 22:32
+-- Tempo de geração: 24/02/2019 às 03:35
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -251,6 +251,22 @@ CREATE TABLE `extrato` (
 -- --------------------------------------------------------
 
 --
+-- Estrutura para tabela `fotoembar`
+--
+
+CREATE TABLE `fotoembar` (
+  `fk_embar` int(11) NOT NULL,
+  `proa` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `popa` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `traves` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `interior1` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `interior2` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
+  `interior3` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Estrutura para tabela `pagamentos`
 --
 
@@ -473,6 +489,12 @@ ALTER TABLE `endereco`
   ADD PRIMARY KEY (`fk_usuario`);
 
 --
+-- Índices de tabela `fotoembar`
+--
+ALTER TABLE `fotoembar`
+  ADD PRIMARY KEY (`fk_embar`);
+
+--
 -- Índices de tabela `pagamentos`
 --
 ALTER TABLE `pagamentos`
@@ -624,6 +646,12 @@ ALTER TABLE `endemp`
 --
 ALTER TABLE `endereco`
   ADD CONSTRAINT `fk_usu_end` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+
+--
+-- Restrições para tabelas `fotoembar`
+--
+ALTER TABLE `fotoembar`
+  ADD CONSTRAINT `fk_foto_embar` FOREIGN KEY (`fk_embar`) REFERENCES `embarcacao` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `pagamentos`

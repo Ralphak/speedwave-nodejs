@@ -167,15 +167,32 @@ router.post('/api/cadastrar/embarcacao', (req, res)=>{
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
-                conn.commit((err)=>{
+                let pasta = `/barcos/${results.insertId}/`;
+                let fotosEmbarcacao = {
+                    fk_embar : results.insertId,
+                    proa : pasta + req.files.proa.name, 
+                    popa : pasta + req.files.popa.name, 
+                    traves : pasta + req.files.traves.name, 
+                    interior1 : pasta + req.files.interior1.name, 
+                    interior2 : pasta + req.files.interior2.name, 
+                    interior3 : pasta + req.files.interior3.name
+                };
+                conn.query("insert into fotoembar set ?", fotosEmbarcacao, (err, results)=>{
                     if(err){
                         nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    ftp.upload(req.files, `/embarcacoes/${results.insertId}/`);
-                    nodemailer.enviarMensagem(req.user.email, "Registro de embarcação em análise", `Seu pedido de cadastro da embarcação ${req.body.nome} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
-                    res.redirect('/#lista-embarcacoes');
+                    conn.commit((err)=>{
+                        if(err){
+                            nodemailer.enviarErro(err.stack);
+                            conn.rollback(()=>{res.send(err.stack);});
+                            return;
+                        }
+                        ftp.upload(req.files, pasta);
+                        nodemailer.enviarMensagem(req.user.email, "Registro de embarcação em análise", `${req.user.razao},<br><br>Seu pedido de cadastro da embarcação ${req.body.nome} foi recebido e será analisado em breve. Aguarde um novo email contendo nossa resposta.`);
+                        res.redirect('/#lista-embarcacoes');
+                    });
                 });
             });
         });
@@ -345,7 +362,7 @@ router.get('/getnet/registrar', (req, res)=>{
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    nodemailer.enviarMensagem(req.user.email, "Compra efetuada", `Prezado ${req.user.nome},<br><br>Sua última compra no valor de R$${bitmask[3]} foi confirmada. Você pode conferir os detalhes na aba "Meus Serviços" do site, após realizar o login.`);
+                    nodemailer.enviarMensagem(req.user.email, "Compra efetuada", `Prezado(a) ${req.user.nome},<br><br>Sua última compra no valor de R$${bitmask[3]} foi confirmada. Você pode conferir os detalhes na aba "Meus Serviços" do site, após realizar o login.`);
                     res.redirect('/#sucesso');
                 });
             });
@@ -415,9 +432,9 @@ router.post('/admin/autorizar', (req, res)=>{
                 res.send(err.stack);
                 return;
             }
-            mysql.query(`select nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where id in(${barcosAprovados})`, (err, results)=>{
+            mysql.query(`select nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where embarcacao.id in(${barcosAprovados})`, (err, results)=>{
                 results.forEach(result=>{
-                    nodemailer.enviarMensagem(result.empresabarco.email, "Sua embarcação foi aprovada", `${result.empresabarco.razao},<br><br>A sua embarcação de nome ${result.nome} foi aprovada e adicionada à sua conta!`);
+                    nodemailer.enviarMensagem(result.email, "Sua embarcação foi aprovada", `${result.razao},<br><br>A sua embarcação de nome ${result.nome} foi aprovada e adicionada à sua conta!`);
                 });
             });
         });
@@ -445,8 +462,10 @@ router.post('/admin/autorizar', (req, res)=>{
     }
     //Excluir barcos recusados
     if(Object.keys(barcosRecusados).length > 0){
-        mysql.query(`select id, nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where id in(${Object.keys(barcosRecusados)})`, (err, results)=>{
+        mysql.query(`select embarcacao.id, nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where embarcacao.id in(${Object.keys(barcosRecusados)})`, (err, results)=>{
+            console.log(results);
             if(err){
+                console.log(err);
                 nodemailer.enviarErro(err.stack);
                 res.send(err.stack);
                 return;
@@ -458,8 +477,8 @@ router.post('/admin/autorizar', (req, res)=>{
                     return;
                 }
                 results.forEach(result=>{
-                    ftp.delete(`/embarcacoes/${result.id}`);
-                    nodemailer.enviarMensagem(result.empresabarco.email, "Sua embarcação foi recusada", `${result.empresabarco.razao},<br><br>A sua embarcação de nome ${result.nome} foi recusada em nosso site.<br><br>Motivo: ${barcosRecusados[result.id]}<br><br>O cadastro da embarcação foi excluído para que possa refazê-lo com as informações corretas.`);
+                    ftp.delete(`/barcos/${result.id}`);
+                    nodemailer.enviarMensagem(result.email, "Sua embarcação foi recusada", `${result.razao},<br><br>A sua embarcação de nome ${result.nome} foi recusada em nosso site.<br><br>Motivo: ${barcosRecusados[result.id]}<br><br>O cadastro da embarcação foi excluído para que possa refazê-lo com as informações corretas.`);
                 });
             });
         });
