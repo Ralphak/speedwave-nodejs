@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 24/02/2019 às 03:35
+-- Tempo de geração: 24/02/2019 às 15:17
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -311,6 +311,7 @@ CREATE TABLE `socio` (
   `nome` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `cpf` varchar(20) COLLATE utf8_unicode_ci DEFAULT NULL,
   `data_nasc` date DEFAULT NULL,
+  `email` varchar(100) COLLATE utf8_unicode_ci NOT NULL,
   `rua` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `numero` int(5) DEFAULT NULL,
   `complemento` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
@@ -320,7 +321,7 @@ CREATE TABLE `socio` (
   `estado` varchar(50) COLLATE utf8_unicode_ci DEFAULT NULL,
   `senha` varchar(255) COLLATE utf8_unicode_ci DEFAULT NULL,
   `fk_empresa` int(11) DEFAULT NULL,
-  `altoAcesso` tinyint(1) DEFAULT NULL
+  `altoAcesso` tinyint(1) DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------

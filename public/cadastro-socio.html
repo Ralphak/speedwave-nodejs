@@ -2,6 +2,7 @@
 <form method="post" id="form-socio" action="/api/incluir/socio?redirect=lista-socios">
     <input name="nome" placeholder="Nome Completo" maxlength="255" required>
     <input name="cpf" placeholder="CPF" type="number" min="0" max="99999999999" required>
+    <input name="email" placeholder="Email" type="email" maxlength="100" required>
     <br><br>
     <label for="data_nasc">Data de Nascimento</label>
     <input name="data_nasc" type="date" required>

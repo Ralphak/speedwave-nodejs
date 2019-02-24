@@ -31,9 +31,13 @@ document.addEventListener("DOMContentLoaded", async()=>{
             //Itens do menu (cliente)
             menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
                 <a class="dropdown-item" href="#lista-servicos-cliente">Meus Serviços</a>
+                <a class="dropdown-item" href="#servicos">Serviços Disponíveis</a>
             `);
         }
-        menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `<a class="dropdown-item" href="/api/logout">Sair</a>`);
+        menuUsuario.querySelector(".dropdown-menu").insertAdjacentHTML("beforeend", `
+            <a class="dropdown-item" href="#alterar-senha">Alterar Senha</a>
+            <a class="dropdown-item" href="/api/logout">Sair</a>
+        `);
     } else{
         menuUsuario.insertAdjacentHTML("beforeend", `
             <li class="nav-item">
@@ -138,6 +142,13 @@ function carregarPagina(pagina){
                     });
                     document.getElementById("admin-senha").remove();
                 });
+                break;
+            case "alterar-senha":
+                let flashSenha = await recuperarDados("/api/dados/flash");
+                if(flashSenha){
+                    document.getElementById("msg-flash").innerHTML= flashSenha.message;
+                }
+                confirmarSenha();
                 break;
             case "cadastro-cliente":
             case "cadastro-empresa":
@@ -416,10 +427,13 @@ function carregarPagina(pagina){
 
             case "lista-socios":
                 if(!listaSocios) listaSocios = await recuperarDados(`/api/buscar/socio
-                    ?colunas=id,nome,cpf,data_nasc,rua,bairro,cidade,estado,cep,altoAcesso
+                    ?colunas=id,nome,cpf,data_nasc,email,rua,bairro,cidade,estado,cep,altoAcesso
                     &filtro=where fk_empresa=${usuario.id} 
                     order by nome`);
-                let cabecalhosSocios = ["Nome","CPF","Data Nasc.","Endereço","Bairro","Cidade","Estado","CEP","Alto Acesso"];
+                let cabecalhosSocios = ["Nome","CPF","Data Nasc.","Email","Endereço","Bairro","Cidade","Estado","CEP","Alto Acesso"];
+                listaSocios.forEach(socio=>{
+                    socio.botaoExcluir="";
+                });
                 document.getElementById("tabela-socios").innerHTML = gerarTabela(listaSocios, cabecalhosSocios);
                 if(listaSocios.length < 5){
                     document.getElementById("div-content").insertAdjacentHTML("beforeend", `
@@ -456,46 +470,6 @@ function carregarPagina(pagina){
                 });
                 break;
 
-            case "pagina-inicial":
-                if(!usuario || usuario.vinculo=="cliente"){
-                    document.getElementById("area-cliente").removeAttribute("hidden");
-                    //Obtenção dos serviços do banco de dados
-                    if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
-                        ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros
-                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id
-                        where status="Ativo"
-                    `);
-                    if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
-                        ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade
-                        &filtro=join embarcacao on fk_embarcacao=embarcacao.id
-                        where status="Ativo"
-                    `);
-                    //Exibição dos aluguéis
-                    if(listaAlugueis.length > 0){
-                        gerarCards("cards-alugueis", listaAlugueis, "traves", "detalhes-pedido");
-                    } else{
-                        document.getElementById("cards-alugueis").innerHTML = "<p>Nenhum aluguel disponível no momento.</p>"
-                    }
-                    //Exibição dos passeios
-                    if(listaPasseios.length > 0){
-                        gerarCards("cards-passeios", listaPasseios, "traves", "detalhes-pedido");
-                    } else{
-                        document.getElementById("cards-passeios").innerHTML = "<p>Nenhum passeio disponível no momento.</p>"
-                    }
-                    //Ir para a compra ao clicar no card
-                    document.getElementById("cards-alugueis").querySelectorAll(".card").forEach(card =>{
-                        card.addEventListener("click", (e)=>{
-                            detalhesServico = listaAlugueis[e.currentTarget.id];
-                        });
-                    });
-                    document.getElementById("cards-passeios").querySelectorAll(".card").forEach(card =>{
-                        card.addEventListener("click", (e)=>{
-                            detalhesServico = listaPasseios[e.currentTarget.id];
-                        });
-                    });
-                }
-                break;
-
             case "quem-somos":
                 let quemsomosMenu = document.querySelectorAll(".quemsomos"),
                     quemsomosInfo = document.getElementById("quemsomos_info").querySelectorAll("div"),
@@ -509,6 +483,43 @@ function carregarPagina(pagina){
                     });
                 }
                 break;
+
+            case "servicos":
+                //Obtenção dos serviços do banco de dados
+                if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
+                    ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros
+                    &filtro=join embarcacao on fk_embarcacao=embarcacao.id
+                    where status="Ativo"
+                `);
+                if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
+                    ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade
+                    &filtro=join embarcacao on fk_embarcacao=embarcacao.id
+                    where status="Ativo"
+                `);
+                //Exibição dos aluguéis
+                if(listaAlugueis.length > 0){
+                    gerarCards("cards-alugueis", listaAlugueis, "traves", "detalhes-pedido");
+                } else{
+                    document.getElementById("cards-alugueis").innerHTML = "<p>Nenhum aluguel disponível no momento.</p>"
+                }
+                //Exibição dos passeios
+                if(listaPasseios.length > 0){
+                    gerarCards("cards-passeios", listaPasseios, "traves", "detalhes-pedido");
+                } else{
+                    document.getElementById("cards-passeios").innerHTML = "<p>Nenhum passeio disponível no momento.</p>"
+                }
+                //Ir para a compra ao clicar no card
+                document.getElementById("cards-alugueis").querySelectorAll(".card").forEach(card =>{
+                    card.addEventListener("click", (e)=>{
+                        detalhesServico = listaAlugueis[e.currentTarget.id];
+                    });
+                });
+                document.getElementById("cards-passeios").querySelectorAll(".card").forEach(card =>{
+                    card.addEventListener("click", (e)=>{
+                        detalhesServico = listaPasseios[e.currentTarget.id];
+                    });
+                });
+                break;
         }
     });
 }
@@ -517,6 +528,13 @@ function carregarPagina(pagina){
 //Verificar permissões de acesso
 function permitirAcesso(pagina){
     switch(pagina){
+        //Permissões para qualquer usuário logado
+        case "#alterar-senha":
+            if(!usuario){
+                return false;
+            }
+            break;
+
         //Permissões para empresa e sócio
         case "#cadastro-embarcacao":
         case "#cadastro-servico":
@@ -539,6 +557,7 @@ function permitirAcesso(pagina){
         //Permissões somente para cliente
         case "#detalhes-pedido":
         case "#lista-servicos-cliente":
+        case "#servicos":
             if(!usuario || usuario.vinculo!="cliente"){
                 return false;
             }
@@ -547,6 +566,7 @@ function permitirAcesso(pagina){
         //Impede que um usuário já logado acesse o login novamente
         case "#cadastro-cliente":
         case "#cadastro-empresa":
+        case "#esqueci-senha":
         case "#login":
             if(usuario){
                 return false;
@@ -617,6 +637,13 @@ function gerarTabela (dados, cabecalhos){
                 case "fk_aluguelbarco":
                 case "fk_pagamento":
                 //case "max_passageiros":
+                    break;
+                case "botaoExcluir":
+                    tabela+=`<td><form method="post" action="/api/excluir/socio">
+                        <input name="id" value="${dado.id}" hidden>
+                        <input name="url" value="/${location.hash}" hidden>
+                        <button type="submit" class="btn btn-danger btn-sm">Remover</button>
+                        </form></td>`;
                     break;
                 case "campoAutorizar":
                     let urlArquivos = ftpPath, categoria;

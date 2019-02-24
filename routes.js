@@ -48,6 +48,78 @@ router.post('/api/incluir/:tabela', (req, res)=>{
         }        
     });
 });
+    
+//Altera a senha do usuário
+router.post('/api/alterar/senha', (req, res)=>{
+    Object.keys(req.body).map(senha=>{
+        req.body[senha] = crypto.createHash('sha1').update(req.body[senha]).digest('base64');
+    });
+    let tabela, idUsuario = req.user.id;
+    switch(vinculoUsuario){
+        case "empresa": tabela="empresabarco";
+            break;
+        case "socio": tabela="socio";
+            idUsuario = req.user.id_socio;
+            break;
+        case "cliente": tabela="usuario";
+            break;
+    }
+    mysql.getConnection((err, conn)=>{
+        if(err){
+            nodemailer.enviarErro(err.stack);
+            res.send(err.stack);
+            return;
+        }
+        conn.beginTransaction((err)=>{
+            if(err){
+                nodemailer.enviarErro(err.stack);
+                res.send(err.stack);
+                return;
+            }
+            conn.query(`select senha from ${tabela} where id=${idUsuario}`, (err, results)=>{
+                if(err){
+                    nodemailer.enviarErro(err.stack);
+                    conn.rollback(()=>{res.send(err.stack);});
+                    return;
+                }
+                if(req.body.senha_atual != results[0].senha){
+                    conn.rollback(()=>{
+                        req.flash('message', 'Senha incorreta.');
+                        res.redirect('/#alterar-senha');
+                    });
+                    return;
+                }
+                conn.query(`update ${tabela} set senha="${req.body.senha}" where id=${idUsuario}`, (err, results)=>{
+                    if(err){
+                        nodemailer.enviarErro(err.stack);
+                        conn.rollback(()=>{res.send(err.stack);});
+                        return;
+                    }
+                    conn.commit((err)=>{
+                        if(err){
+                            nodemailer.enviarErro(err.stack);
+                            conn.rollback(()=>{res.send(err.stack);});
+                            return;
+                        }
+                        res.redirect('/#sucesso');
+                    });
+                });
+            });
+        });
+    });
+});
+    
+//Exclui uma entrada de uma tabela
+router.post('/api/excluir/:tabela', (req, res)=>{
+    mysql.query("delete from " + req.params.tabela + " where id=?", req.body.id, (err, results)=>{
+        if(err){
+            nodemailer.enviarErro(err.stack);
+            res.send(err.stack);
+            return;
+        }
+        res.redirect(req.body.url);        
+    });
+});
 
 //Inclui um cadastro de empresa no banco de dados.
 router.post('/api/cadastrar/empresa', (req, res)=>{
@@ -465,7 +537,6 @@ router.post('/admin/autorizar', (req, res)=>{
         mysql.query(`select embarcacao.id, nome, empresabarco.razao, empresabarco.email from embarcacao join empresabarco on fk_empbarco=empresabarco.id where embarcacao.id in(${Object.keys(barcosRecusados)})`, (err, results)=>{
             console.log(results);
             if(err){
-                console.log(err);
                 nodemailer.enviarErro(err.stack);
                 res.send(err.stack);
                 return;
@@ -484,6 +555,34 @@ router.post('/admin/autorizar', (req, res)=>{
         });
     }
     res.redirect('/#admin');
+});
+
+//Envia uma nova senha aleatória para o email inserido
+router.post('/api/novasenha', (req, res)=>{
+    let tabelas = {empresabarco:"cnpj", socio:"cpf", usuario:"login"};
+    Object.entries(tabelas).forEach(tabela=>{
+        mysql.query(`select ${tabela[1]}, senha from ${tabela[0]} where email="${req.body.email}"`, (err, results)=>{
+            if(err){
+                nodemailer.enviarErro(err.stack);
+                res.send(err.stack);
+                return;
+            }
+            if(results.length > 0) results.forEach(result=>{
+                let tipoConta="cliente", senhaNova = Math.random().toString(36).substring(2);
+                if(tabela[0]=="empresabarco") tipoConta="empresa";
+                else if(tabela[0]=="socio") tipoConta="sócio";
+                mysql.query(`update ${tabela[0]} set senha="${crypto.createHash('sha1').update(senhaNova).digest('base64')}" where email="${req.body.email}"`, (err)=>{
+                    if(err){
+                        nodemailer.enviarErro(err.stack);
+                        res.send(err.stack);
+                        return;
+                    }
+                    nodemailer.enviarMensagem(req.body.email, "Senha temporária", `Atendendo ao seu pedido, foi gerada uma senha aleatória para a sua conta de ${tipoConta}. Segue abaixo as suas credenciais:<br><br>${tabela[1]}: ${result[tabela[1]]}<br>senha: ${senhaNova}<br><br>Recomendamos que troque essa senha assim que possível, através da opção "Alterar Senha" em nosso site.`);
+                });
+            });
+        });
+    });
+    res.redirect("/#login");
 });
 
 module.exports = router;
