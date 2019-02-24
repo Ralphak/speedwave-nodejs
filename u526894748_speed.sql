@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Tempo de geração: 24/02/2019 às 15:17
+-- Tempo de geração: 24/02/2019 às 20:38
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -87,7 +87,8 @@ CREATE TABLE `aluguelbarco` (
   `fk_empresa` int(11) NOT NULL,
   `data_aluguel` datetime DEFAULT NULL,
   `valor` double DEFAULT NULL,
-  `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo'
+  `status` varchar(10) COLLATE utf8_unicode_ci NOT NULL DEFAULT 'Ativo',
+  `lim_passageiros` int(5) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -121,7 +122,7 @@ CREATE TABLE `aluguelbarco_empresa` (
 ,`fk_embarcacao` int(11)
 ,`nome_embarcacao` varchar(255)
 ,`num_passageiros` bigint(21)
-,`max_passageiros` int(5)
+,`lim_passageiros` int(5)
 ,`data_aluguel` datetime
 ,`valor` double
 ,`status` varchar(10)
@@ -405,7 +406,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEF
 --
 DROP TABLE IF EXISTS `aluguelbarco_empresa`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_empresa`  AS  select `aluguelbarco`.`id` AS `id`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_passageiros`,`embarcacao`.`max_passageiros` AS `max_passageiros`,`aluguelbarco`.`data_aluguel` AS `data_aluguel`,`aluguelbarco`.`valor` AS `valor`,`aluguelbarco`.`status` AS `status` from ((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) left join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) group by `aluguelbarco`.`id` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_empresa`  AS  select `aluguelbarco`.`id` AS `id`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_passageiros`,`aluguelbarco`.`lim_passageiros` AS `lim_passageiros`,`aluguelbarco`.`data_aluguel` AS `data_aluguel`,`aluguelbarco`.`valor` AS `valor`,`aluguelbarco`.`status` AS `status` from ((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) left join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) group by `aluguelbarco`.`id` ;
 
 -- --------------------------------------------------------
 

@@ -180,17 +180,25 @@ function carregarPagina(pagina){
                         tipoServico = "Aluguel de "+embarcacao.categoria;
                     }
                     selectEmbarcacao.insertAdjacentHTML("beforeend", `
-                        <option value="${embarcacao.id}" data-categoria="${embarcacao.categoria}">${embarcacao.nome} - ${tipoServico} - ${embarcacao.max_passageiros} passageiros</option>
+                        <option value="${embarcacao.id}" data-categoria="${embarcacao.categoria}" data-passageiros="${embarcacao.max_passageiros}">${embarcacao.nome} - ${tipoServico} - ${embarcacao.max_passageiros} passageiros</option>
                     `);
                 });
                 formServico.removeAttribute("hidden");
-                //Muda o URL do POST de acordo com a embarcação
+                //Muda o URL do POST de acordo com a embarcação. Também habilita o limite de passageiros em passeios de barco.
                 let setActionURL = function(){
                     let categoria = selectEmbarcacao.options[selectEmbarcacao.selectedIndex].dataset.categoria;
                     if(categoria == "Barco"){
                         formServico.action="/api/incluir/aluguelbarco?redirect=lista-servicos";
+                        //limite de passageiros
+                        let passageiros = selectEmbarcacao.options[selectEmbarcacao.selectedIndex].dataset.passageiros;
+                        document.getElementById("div-limite").innerHTML = `
+                            <label for="lim_passageiros">Limite de Passageiros: </label>
+                            <input name="lim_passageiros" type="number" min="1" max="${passageiros}" required>
+                            <label for="lim_passageiros"> de ${passageiros}</label>
+                        `;
                     } else{
                         formServico.action="/api/incluir/alugalancha?redirect=lista-servicos";
+                        document.getElementById("div-limite").innerHTML = '';
                     }
                 }
                 setActionURL();
@@ -214,13 +222,14 @@ function carregarPagina(pagina){
 
             case "detalhes-pedido":
                 if(!detalhesServico){ 
-                    document.getElementById("exibicao-carregando").innerHTML = "Por favor clique em Voltar e tente novamente."
+                    document.getElementById("exibicao-carregando").innerHTML = "Por favor clique/toque em Voltar e tente novamente."
                     break;
                 }
                 let apiGetnet = document.getElementById("api-getnet").dataset,
                     apiToken = await recuperarDados("/getnet/autenticar"),
                     orderID = await recuperarDados("/api/buscar/pagamentos?colunas=max(id) as id"),
-                    nomeSplit = usuario.nome.split(" ", 2);
+                    nomeSplit = usuario.nome.split(" ", 2),
+                    divFotos = "", nomesFotos = ["proa","popa","traves","interior1","interior2","interior3"];
                 if(!endereco) endereco = await recuperarDados(`/api/buscar/endereco?filtro=where fk_usuario=${usuario.id}`);
                 orderID = orderID ? orderID[0].id + 1 : 1;
                 //Valores iniciais
@@ -249,14 +258,18 @@ function carregarPagina(pagina){
                 document.getElementById("servico-preco").innerHTML = formatarMoeda(detalhesServico.valor);
                 document.getElementById("servico-local").innerHTML = detalhesServico.cidade;
                 document.getElementById("servico-data").innerHTML = formatarData(detalhesServico.data_aluguel, true);
+                nomesFotos.forEach(foto=>{
+                    divFotos += `<img class="img-detalhes" src="${ftpPath + detalhesServico[foto]}">`;
+                });
+                document.getElementById("servico-fotos").innerHTML = divFotos;
                 document.getElementById("servico-comprador").innerHTML = usuario.nome;
                 document.getElementById("servico-endereco").innerHTML = `${endereco[0].rua} ${endereco[0].numero} ${endereco[0].complemento} ${endereco[0].bairro} ${endereco[0].cidade} ${endereco[0].estado}`;
                 //Envia os valores para a API
                 if(detalhesServico.categoria == "Barco"){
                     document.getElementById("form-pedido").insertAdjacentHTML("afterbegin", `
                         <label for="qtd_passageiros"><b>Nº de Pessoas: </b></label>
-                        <input name="qtd_passageiros" type="number" min=1 max=${detalhesServico.max_passageiros - detalhesServico.num_passageiros} value=1>
-                        Máximo de ${detalhesServico.max_passageiros - detalhesServico.num_passageiros}<br>
+                        <input name="qtd_passageiros" type="number" min=1 max=${detalhesServico.lim_passageiros - detalhesServico.num_passageiros} value=1>
+                        Máximo de ${detalhesServico.lim_passageiros - detalhesServico.num_passageiros}<br>
                         <b>Preço Total: </b>R$<span id="servico-preco-total">${detalhesServico.valor}</span><br><br>
                         <input name="nome" placeholder="Nome do Passageiro" maxlength="255" required><br>
                         <div id="passageiros-extras"></div><br>
@@ -321,7 +334,6 @@ function carregarPagina(pagina){
                     document.getElementById("cards-barcos").innerHTML = "Nenhum registro encontrado.";
                     break;
                 }
-                console.log(listaBarcos);
                 //Insere o código HTML para cada card
                 gerarCards("cards-barcos", listaBarcos, "traves");
                 //Cria um modal quando um dos cards é clicado
@@ -487,13 +499,15 @@ function carregarPagina(pagina){
             case "servicos":
                 //Obtenção dos serviços do banco de dados
                 if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
-                    ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros
+                    ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros, fotoembar.*
                     &filtro=join embarcacao on fk_embarcacao=embarcacao.id
+                    join fotoembar on fk_embarcacao=fotoembar.fk_embar
                     where status="Ativo"
                 `);
                 if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
-                    ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade
+                    ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, fotoembar.*
                     &filtro=join embarcacao on fk_embarcacao=embarcacao.id
+                    join fotoembar on fk_embarcacao=fotoembar.fk_embar
                     where status="Ativo"
                 `);
                 //Exibição dos aluguéis
@@ -607,7 +621,9 @@ function formatarData(stringData, hora=false){
 
 //Formatação de moeda
 function formatarMoeda(stringMoeda){
-    return `R$${stringMoeda.toFixed(2).replace(".",",")}`;
+    if(typeof stringMoeda == "number"){
+        return `R$${stringMoeda.toFixed(2).replace(".",",")}`;
+    } else return stringMoeda;
 }
 
 
@@ -636,7 +652,7 @@ function gerarTabela (dados, cabecalhos){
                 case "fk_usuario":
                 case "fk_aluguelbarco":
                 case "fk_pagamento":
-                //case "max_passageiros":
+                case "lim_passageiros":
                     break;
                 case "botaoExcluir":
                     tabela+=`<td><form method="post" action="/api/excluir/socio">
@@ -683,11 +699,11 @@ function gerarTabela (dados, cabecalhos){
                     break;
                 case "num_passageiros":
                     if(dado.num_passageiros > 0){
-                        tabela+=`<td>${dado.num_passageiros} de ${dado.max_passageiros} 
+                        tabela+=`<td>${dado.num_passageiros} de ${dado.lim_passageiros} 
                             <button class="btn btn-primary btn-sm ver-passageiros" id="${dado.id}">Ver Lista</button>
                             </td>`;
                     } else{
-                        tabela+=`<td>${dado.num_passageiros} de ${dado.max_passageiros}</td>`;
+                        tabela+=`<td>${dado.num_passageiros} de ${dado.lim_passageiros}</td>`;
                     }
                     break;
                 case "num_pessoas":
@@ -713,6 +729,7 @@ function gerarTabela (dados, cabecalhos){
 
 //Gera um grupo de cards e insere-o na página
 function gerarCards(divID, lista, campoFoto, link){
+    console.log(lista);
     document.getElementById(divID).innerHTML = "";
     for(let i=0; i<lista.length; i++){
         let titulo, descricao;
