@@ -17,11 +17,11 @@
     <form id="form-pedido"></form>
     <p class="text-danger"><b>Obs:</b> Você será cobrado apenas uma fração do preço total. O restante deverá ser pago diretamente ao proprietário da embarcação!</p>
     <button class="btn btn-primary btn-lg pay-button-getnet">Pagar</button>
-    <p style="font-size: 12px"><br>Caso não consiga finalizar o pagamento, tente marcar "Não" no endereço de entrega.</p>
+    <p style="font-size: 12px"><br>Caso não consiga finalizar o pagamento, tente marcar "Não" no endereço de cobrança.</p>
 </div>
 
 <!-- API da Getnet -->
-<script id="api-getnet" src="https://checkout-homologacao.getnet.com.br/loader.js"
+<script id="api-getnet" async src="https://checkout-homologacao.getnet.com.br/loader.js"
   data-getnet-sellerid="da182e0a-33d1-4191-a02e-e39546e1fe39"
   data-getnet-token="VALOR RETORNADO PELA API DE AUTENTICAÇÃO"
   data-getnet-amount=""
@@ -44,6 +44,6 @@
   data-getnet-customer-address-zipcode=""
   data-getnet-customer-country=""
   data-getnet-items='[{"name": "","description": "", "value": 0, "quantity": 0,"sku": ""}]'
-  data-getnet-url-callback=""
+  data-getnet-url-callback="/#getnet-sucesso"
   data-getnet-pre-authorization-credit="">
 </script>

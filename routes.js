@@ -371,8 +371,9 @@ router.get('/getnet/autenticar', (req, res)=>{
 });
 
 //Registro de compra pelo e-commerce da Getnet
-router.get('/getnet/registrar', (req, res)=>{
-    let bitmask = req.query.bitmask.split(","), nomes, tabelaAluguel, tipoServico,
+router.post('/getnet/registrar', (req, res)=>{
+    console.log(req.body);
+    let tabelaAluguel,
         dadosTransacao = {
             id : bitmask[1],
             fk_empresa : bitmask[2],

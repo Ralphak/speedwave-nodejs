@@ -1,4 +1,4 @@
-var usuario, endereco, ftpPath, linkAtivo, linkRedirect, listaAlugueis, listaAlugueisCliente, listaBarcos, listaExtrato, listaPasseios, listaPasseiosCliente, listaSocios, detalhesServico;
+var usuario, endereco, ftpPath, linkAtivo, linkRedirect, listaAlugueis, listaAlugueisCliente, listaBarcos, listaExtrato, listaPasseios, listaPasseiosCliente, listaSocios, detalhesServico, dadosCallback;
 
 
 //Eventos que devem ocorrer assim que o site é carregado
@@ -297,18 +297,35 @@ function carregarPagina(pagina){
                         }
                         bloquearEnvio("form-pedido", "pay-button-getnet");
                     });
-                    //Construção da URL do callback
+                    //Construção dos dados do callback
                     document.getElementById("form-pedido").addEventListener("change", ()=>{
                         let nomePassageiros = "";
                         document.getElementsByName("nome").forEach(nome =>{
                             nomePassageiros += nome.value.replace(",","") + ",";
                         });
-                        apiGetnet.getnetUrlCallback= `/getnet/registrar?bitmask=0,${orderID},${detalhesServico.fk_empresa},${precoTotal},${detalhesServico.id},${porcPasseio}&nome=${nomePassageiros}`;
+                        //apiGetnet.getnetUrlCallback= `/getnet/registrar?bitmask=0,${orderID},${detalhesServico.fk_empresa},${precoTotal},${detalhesServico.id},${porcPasseio}&nome=${nomePassageiros}`;
+                        dadosCallback = {
+                            tipoServico: "Passeio de Barco",
+                            id: orderID,
+                            fk_empresa: detalhesServico.fk_empresa,
+                            valor: precoTotal,
+                            fk_aluguel: detalhesServico.id,
+                            porcentagem: porcPasseio,
+                            nomes: nomePassageiros
+                        };
                     });
                 } else{
                     apiGetnet.getnetAmount = (detalhesServico.valor * porcAluguel).toFixed(2);
                     apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Aluguel de Lancha", "value": ${(detalhesServico.valor * porcAluguel).toFixed(2)}, "quantity": 1,"sku": ""}]`;
-                    apiGetnet.getnetUrlCallback = `/getnet/registrar?bitmask=1,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id},${porcAluguel}`;
+                    //apiGetnet.getnetUrlCallback = `/getnet/registrar?bitmask=1,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id},${porcAluguel}`;
+                    dadosCallback = {
+                        tipoServico: "Aluguel de Lancha",
+                        id: orderID,
+                        fk_empresa: detalhesServico.fk_empresa,
+                        valor: detalhesServico.valor,
+                        fk_aluguel: detalhesServico.id,
+                        porcentagem: porcAluguel
+                    };
                 }
                 //Exibir a página
                 document.getElementById("exibicao-carregando").setAttribute("hidden","");
@@ -324,6 +341,23 @@ function carregarPagina(pagina){
                 if(listaExtrato.length > 0){
                     $("#tabela-extrato").DataTable();
                 }
+                break;
+
+            case "getnet-sucesso":
+                if(dadosCallback){
+                    document.getElementById("div-content").insertAdjacentHTML("beforeend", `
+                        <form id="getnet-post" action="/getnet/registrar" method="post" hidden>
+                            <input name="tipoServico" value=${dadosCallback.tipoServico} readonly>
+                            <input name="id" value=${dadosCallback.id} readonly>
+                            <input name="fk_empresa" value=${dadosCallback.fk_empresa} readonly>
+                            <input name="valor" value=${dadosCallback.valor} readonly>
+                            <input name="fk_aluguel" value=${dadosCallback.fk_aluguel} readonly>
+                            <input name="porcentagem" value=${dadosCallback.porcentagem} readonly>
+                            <input name="nomes" value=${dadosCallback.nomes} readonly>
+                        </form>
+                    `)
+                    document.getElementById("getnet-post").submit();
+                } else carregarPagina("");
                 break;
 
             case "lista-embarcacoes":
