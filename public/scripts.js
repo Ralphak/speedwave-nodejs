@@ -501,15 +501,17 @@ function carregarPagina(pagina){
             case "servicos":
                 //Obtenção dos serviços do banco de dados
                 if(!listaAlugueis) listaAlugueis = await recuperarDados(`/api/buscar/alugalancha
-                    ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros, fotoembar.*
+                    ?colunas=alugalancha.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, embarcacao.max_passageiros, fotoembar.*, empresabarco.razao
                     &filtro=join embarcacao on fk_embarcacao=embarcacao.id
                     join fotoembar on fk_embarcacao=fotoembar.fk_embar
+                    join empresabarco on fk_empresa=empresabarco.id
                     where status="Ativo"
                 `);
                 if(!listaPasseios) listaPasseios = await recuperarDados(`/api/buscar/aluguelbarco_empresa
-                    ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, fotoembar.*
+                    ?colunas=aluguelbarco_empresa.*, embarcacao.nome, embarcacao.categoria, embarcacao.cidade, fotoembar.*, empresabarco.razao
                     &filtro=join embarcacao on fk_embarcacao=embarcacao.id
                     join fotoembar on fk_embarcacao=fotoembar.fk_embar
+                    join empresabarco on fk_empresa=empresabarco.id
                     where status="Ativo"
                 `);
                 //Exibição dos aluguéis
@@ -533,6 +535,41 @@ function carregarPagina(pagina){
                 document.getElementById("cards-passeios").querySelectorAll(".card").forEach(card =>{
                     card.addEventListener("click", (e)=>{
                         detalhesServico = listaPasseios[e.currentTarget.id];
+                    });
+                });
+                //Fitro da lista
+                document.getElementsByName("filtroServicos").forEach(radio =>{
+                    radio.addEventListener("click", (e)=>{
+                        if(e.target.value == "Passeios"){
+                            document.getElementById("titulo-passeios").removeAttribute("hidden","");
+                            document.getElementById("cards-passeios").removeAttribute("hidden","");
+                            document.getElementById("titulo-alugueis").setAttribute("hidden","");
+                            document.getElementById("cards-alugueis").setAttribute("hidden","");
+                        } else if(e.target.value == "Alugueis"){
+                            document.getElementById("titulo-passeios").setAttribute("hidden","");
+                            document.getElementById("cards-passeios").setAttribute("hidden","");
+                            document.getElementById("titulo-alugueis").removeAttribute("hidden","");
+                            document.getElementById("cards-alugueis").removeAttribute("hidden","");
+                        } else{
+                            document.getElementById("titulo-passeios").removeAttribute("hidden","");
+                            document.getElementById("cards-passeios").removeAttribute("hidden","");
+                            document.getElementById("titulo-alugueis").removeAttribute("hidden","");
+                            document.getElementById("cards-alugueis").removeAttribute("hidden","");
+                        }
+                    });
+                });
+                //Busca nos cards
+                document.getElementById("busca-cards").addEventListener("change", (e)=>{
+                    document.querySelectorAll(".card-text").forEach(card=>{
+                        let stringBusca = card.innerHTML;
+                        [`<br>`, `<small class="text-muted">`, `</small>`].forEach(tag=>{
+                            stringBusca = stringBusca.split(tag).join(" ");
+                        });
+                        if(e.target.value == "" || stringBusca.match(new RegExp(e.target.value,"i"))){
+                            card.parentElement.removeAttribute("hidden");
+                        } else{
+                            card.parentElement.setAttribute("hidden","");
+                        }
                     });
                 });
                 break;
@@ -745,7 +782,7 @@ function gerarCards(divID, lista, campoFoto, link){
             case "cards-alugueis":
             case "cards-passeios":
                 titulo = `${lista[i].nome}<br>${formatarMoeda(lista[i].valor)}`;
-                descricao = `${lista[i].cidade}<br>${formatarData(lista[i].data_aluguel, true)}`;
+                descricao = `${lista[i].razao}<br>${lista[i].cidade}<br>${formatarData(lista[i].data_aluguel, true)}`;
                 if(divID == "cards-alugueis"){
                     descricao += `<br>${lista[i].max_passageiros} passageiros`;
                 }
