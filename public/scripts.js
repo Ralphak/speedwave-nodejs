@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async()=>{
         `);
     } else{
         menuUsuario.insertAdjacentHTML("beforeend", `
-            <li class="nav-item">
+            <li class="nav-item" data-toggle="collapse" data-target=".navbar-collapse.show">
                 <a class="nav-link botao" href="#login">Login</a>
             </li>
         `);
@@ -260,7 +260,7 @@ function carregarPagina(pagina){
                 document.getElementById("servico-local").innerHTML = detalhesServico.cidade;
                 document.getElementById("servico-data").innerHTML = formatarData(detalhesServico.data_aluguel, true);
                 nomesFotos.forEach(foto=>{
-                    divFotos += `<img class="img-detalhes" src="${ftpPath + detalhesServico[foto]}">`;
+                    divFotos += `<img class="img-anexo" src="${ftpPath + detalhesServico[foto]}">`;
                 });
                 document.getElementById("servico-fotos").innerHTML = divFotos;
                 document.getElementById("servico-comprador").innerHTML = usuario.nome;
@@ -793,7 +793,7 @@ function gerarCards(divID, lista, campoFoto, link){
         }
         document.getElementById(divID).insertAdjacentHTML("beforeend", `
             <a ${link}><div class="card m-1" id="${i}">
-                <img class="card-img-top" src="${ftpPath + lista[i][campoFoto]}">
+                <img class="card-img-top img-cards" src="${ftpPath + lista[i][campoFoto]}">
                 <p class="card-text text-center">${titulo}<br><small class="text-muted">${descricao}</small></p>
             </div></a>
         `);

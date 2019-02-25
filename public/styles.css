@@ -35,15 +35,14 @@ i{
 }
 
 .img-anexo{
-    width: 160px;
-    height: 90px;
+    width: 180px;
+    height: 110px;
     margin: 2px;
 }
 
-.img-detalhes{
-    width: 190px;
-    height: 110px;
-    margin: 2px;
+.img-cards{
+    width: 158px;
+    height: 100px;
 }
 
 .img-logo{
