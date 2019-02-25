@@ -418,6 +418,7 @@ function carregarPagina(pagina){
                 }
                 //Tabela de passeios
                 let clientePasseios = ["Embarcação","Cidade","Empresa","Nº de Pessoas","Valor Total","Valor a Pagar","Data do Evento"];
+                console.log(listaPasseiosCliente);
                 document.getElementById("tabela-passeios").innerHTML = gerarTabela(listaPasseiosCliente, clientePasseios);
                 if(listaPasseiosCliente.length > 0){
                     $("#tabela-passeios").DataTable();
@@ -429,7 +430,7 @@ function carregarPagina(pagina){
                         $('.modal').modal('show');
                         let passageirosCliente = await recuperarDados(`/api/buscar/passageiros
                             ?colunas=nome
-                            &filtro=where fk_usuario=${usuario.id} and fk_aluguelbarco=${botaoLista.id}
+                            &filtro=where fk_usuario=${usuario.id} and fk_aluguelbarco=${botaoLista.id} and fk_pagamento=${botaoLista.dataset.pagamento}
                             order by nome`);
                         document.querySelector(".modal-body").innerHTML = "";
                         passageirosCliente.forEach(pessoa =>{
@@ -747,7 +748,7 @@ function gerarTabela (dados, cabecalhos){
                     break;
                 case "num_pessoas":
                     tabela+=`<td>${dado.num_pessoas} 
-                        <button class="btn btn-primary btn-sm ver-pessoas" id="${dado.id}">Ver Lista</button>
+                        <button class="btn btn-primary btn-sm ver-pessoas" id="${dado.id}" data-pagamento=${dado.fk_pagamento}>Ver Lista</button>
                         </td>`;
                     break;
                 case "porcentagem":

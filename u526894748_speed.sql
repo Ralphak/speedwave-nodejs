@@ -2,8 +2,8 @@
 -- version 4.8.5
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Tempo de geração: 24/02/2019 às 20:38
+-- Host: 127.0.0.1:3306
+-- Tempo de geração: 25/02/2019 às 19:39
 -- Versão do servidor: 10.2.17-MariaDB
 -- Versão do PHP: 7.2.10
 
@@ -54,6 +54,7 @@ CREATE TABLE `alugalancha_cliente` (
 ,`fk_empresa` int(11)
 ,`razao` varchar(255)
 ,`valor` double
+,`porcentagem` double
 ,`data_aluguel` datetime
 );
 
@@ -106,7 +107,9 @@ CREATE TABLE `aluguelbarco_cliente` (
 ,`fk_empresa` int(11)
 ,`razao` varchar(255)
 ,`num_pessoas` bigint(21)
+,`fk_pagamento` int(11)
 ,`valor` double
+,`porcentagem` double
 ,`data_aluguel` datetime
 );
 
@@ -276,7 +279,8 @@ CREATE TABLE `pagamentos` (
   `fk_empresa` int(11) NOT NULL,
   `fk_usuario` int(11) NOT NULL,
   `valor` double NOT NULL,
-  `data_pagamento` datetime DEFAULT NULL
+  `data_pagamento` datetime DEFAULT NULL,
+  `porcentagem` double DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COLLATE=utf8_unicode_ci;
 
 -- --------------------------------------------------------
@@ -297,7 +301,7 @@ CREATE TABLE `passageiros` (
 -- Gatilhos `passageiros`
 --
 DELIMITER $$
-CREATE TRIGGER `trigger_lotado` AFTER INSERT ON `passageiros` FOR EACH ROW UPDATE aluguelbarco JOIN aluguelbarco_empresa on aluguelbarco.id=aluguelbarco_empresa.id SET aluguelbarco.status='Lotado' WHERE (aluguelbarco.status='Ativo') AND (aluguelbarco_empresa.num_passageiros >= aluguelbarco_empresa.max_passageiros)
+CREATE TRIGGER `trigger_lotado` AFTER INSERT ON `passageiros` FOR EACH ROW UPDATE aluguelbarco JOIN aluguelbarco_empresa on aluguelbarco.id=aluguelbarco_empresa.id SET aluguelbarco.status='Lotado' WHERE (aluguelbarco.status='Ativo') AND (aluguelbarco_empresa.num_passageiros >= aluguelbarco_empresa.lim_passageiros)
 $$
 DELIMITER ;
 
@@ -379,7 +383,7 @@ CREATE TABLE `usuario` (
 --
 DROP TABLE IF EXISTS `alugalancha_cliente`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `alugalancha_cliente`  AS  select `alugalancha`.`id` AS `id`,`alugalancha`.`fk_usuario` AS `fk_usuario`,`alugalancha`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`alugalancha`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,`alugalancha`.`valor` AS `valor`,`alugalancha`.`data_aluguel` AS `data_aluguel` from ((`alugalancha` join `embarcacao` on(`alugalancha`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`alugalancha`.`fk_empresa` = `empresabarco`.`id`)) where `alugalancha`.`fk_usuario` is not null ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `alugalancha_cliente`  AS  select `alugalancha`.`id` AS `id`,`alugalancha`.`fk_usuario` AS `fk_usuario`,`alugalancha`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`alugalancha`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,`alugalancha`.`valor` AS `valor`,`pagamentos`.`porcentagem` AS `porcentagem`,`alugalancha`.`data_aluguel` AS `data_aluguel` from (((`alugalancha` join `embarcacao` on(`alugalancha`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`alugalancha`.`fk_empresa` = `empresabarco`.`id`)) join `pagamentos` on(`alugalancha`.`fk_pagamento` = `pagamentos`.`id`)) where `alugalancha`.`fk_usuario` is not null ;
 
 -- --------------------------------------------------------
 
@@ -397,7 +401,7 @@ CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEF
 --
 DROP TABLE IF EXISTS `aluguelbarco_cliente`;
 
-CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`pagamentos`.`valor` AS `valor`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `pagamentos`.`id` ;
+CREATE ALGORITHM=UNDEFINED DEFINER=`u526894748_pic`@`127.0.0.1` SQL SECURITY DEFINER VIEW `aluguelbarco_cliente`  AS  select `aluguelbarco`.`id` AS `id`,`pagamentos`.`fk_usuario` AS `fk_usuario`,`aluguelbarco`.`fk_embarcacao` AS `fk_embarcacao`,`embarcacao`.`nome` AS `nome_embarcacao`,`embarcacao`.`cidade` AS `cidade`,`aluguelbarco`.`fk_empresa` AS `fk_empresa`,`empresabarco`.`razao` AS `razao`,count(`passageiros`.`fk_aluguelbarco`) AS `num_pessoas`,`passageiros`.`fk_pagamento` AS `fk_pagamento`,`pagamentos`.`valor` AS `valor`,`pagamentos`.`porcentagem` AS `porcentagem`,`aluguelbarco`.`data_aluguel` AS `data_aluguel` from ((((`aluguelbarco` join `embarcacao` on(`aluguelbarco`.`fk_embarcacao` = `embarcacao`.`id`)) join `empresabarco` on(`aluguelbarco`.`fk_empresa` = `empresabarco`.`id`)) join `passageiros` on(`aluguelbarco`.`id` = `passageiros`.`fk_aluguelbarco`)) join `pagamentos` on(`passageiros`.`fk_pagamento` = `pagamentos`.`id`)) group by `pagamentos`.`id` ;
 
 -- --------------------------------------------------------
 
@@ -615,8 +619,8 @@ ALTER TABLE `usuario`
 ALTER TABLE `alugalancha`
   ADD CONSTRAINT `fk_lancha_embarcacao` FOREIGN KEY (`fk_embarcacao`) REFERENCES `embarcacao` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `fk_lancha_empresa` FOREIGN KEY (`fk_empresa`) REFERENCES `empresabarco` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_lancha_pagamento` FOREIGN KEY (`fk_pagamento`) REFERENCES `pagamentos` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_lancha_usuario` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  ADD CONSTRAINT `fk_lancha_pagamento` FOREIGN KEY (`fk_pagamento`) REFERENCES `pagamentos` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_lancha_usuario` FOREIGN KEY (`fk_usuario`) REFERENCES `usuario` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
 
 --
 -- Restrições para tabelas `aluguelbarco`
