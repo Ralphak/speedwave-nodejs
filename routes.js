@@ -5,10 +5,10 @@ const express = require("express"),
     crypto = require("crypto"),
     getnet = require("./client-oauth2"),
     nodemailer = require("./nodemailer"),
-    ftp = require("./ftp");
+    ftp = require("./ftp"),
+    moment = require("moment");
     
 var vinculoUsuario;
-
 
 //Busca todas as entradas de uma tabela, ou as definidas por ?colunas=x,y&filtro=where...
 router.get('/api/buscar/:tabela', (req, res)=>{
@@ -372,16 +372,17 @@ router.get('/getnet/autenticar', (req, res)=>{
 
 //Registro de compra pelo e-commerce da Getnet
 router.get('/getnet/registrar', (req, res)=>{
-    let bitmask = req.query.bitmask.split(","), nomes,
+    let bitmask = req.query.bitmask.split(","), nomes, tabelaAluguel, tipoServico,
         dadosTransacao = {
             id : bitmask[1],
             fk_empresa : bitmask[2],
             fk_usuario : req.user.id,
             valor : bitmask[3],
-            data_pagamento : new Date()
+            data_pagamento : new Date(),
+            porcentagem : bitmask[5]
         };
     if(bitmask[0] == 0){
-        nomes = req.query.nome.split(",")
+        nomes = req.query.nome.split(","); //Separa os nomes das pessoas
         nomes.pop(); //retira o campo em branco no final do array
     }
     mysql.getConnection((err, conn)=>{
@@ -403,6 +404,8 @@ router.get('/getnet/registrar', (req, res)=>{
                     return;
                 }
                 if(bitmask[0] == 0){ //Passeio de barco
+                    tabelaAluguel = "aluguelbarco_cliente";
+                    tipoServico = "Passeio de Barco";
                     nomes.forEach(nome_passageiro =>{
                         let dadosPassageiro = {
                             fk_aluguelbarco : bitmask[4],
@@ -419,6 +422,8 @@ router.get('/getnet/registrar', (req, res)=>{
                         });
                     });
                 } else{ //Aluguel de lancha
+                    tabelaAluguel = "alugalancha_cliente";
+                    tipoServico = "Aluguel de Lancha";
                     let arrayValores = [req.user.id, bitmask[1], "Alugado", bitmask[4]];
                     conn.query("update alugalancha set fk_usuario=?, fk_pagamento=?, status=? where id=?", arrayValores, (err, results)=>{
                         if(err){
@@ -428,14 +433,43 @@ router.get('/getnet/registrar', (req, res)=>{
                         }
                     });
                 }
-                conn.commit((err)=>{
+                conn.query(`select nome_embarcacao, cidade, razao, data_aluguel from ${tabelaAluguel} where id=${bitmask[4]}`, (err, results)=>{
                     if(err){
                         nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
-                    nodemailer.enviarMensagem(req.user.email, "Compra efetuada", `Prezado(a) ${req.user.nome},<br><br>Sua última compra no valor de R$${bitmask[3]} foi confirmada. Você pode conferir os detalhes na aba "Meus Serviços" do site, após realizar o login.`);
-                    res.redirect('/#sucesso');
+                    let listaNomes="";
+                    if(bitmask[0] == 0){
+                        listaNomes += "<b>Lista de pessoas</b><br>";
+                        nomes.forEach(nome=>{
+                            listaNomes += nome + "<br>";
+                        });
+                        listaNomes += "<br>";
+                    }
+                    nodemailer.enviarMensagem(req.user.email, "Compra efetuada", `Prezado(a) ${req.user.nome},<br><br>
+                        Agradecemos pela sua compra realizada em nosso site! Segue abaixo os detalhes da transação:<br><br>
+                        <b>Tipo de Serviço:</b> ${tipoServico}<br>
+                        <b>Embarcação:</b> ${results[0].nome_embarcacao}<br>
+                        <b>Empresa:</b> ${results[0].razao}<br>
+                        <b>Cidade:</b> ${results[0].cidade}<br>
+                        <b>Data do serviço:</b> ${moment(results[0].data_aluguel).format("DD/MM/YYYY HH:mm")}<br>
+                        <b>Valor total:</b> R$${parseFloat(dadosTransacao.valor).toFixed(2)}<br>
+                        <b>Valor pago:</b> R$${(parseFloat(dadosTransacao.valor)*parseFloat(dadosTransacao.porcentagem)).toFixed(2)}<br>
+                        <b>Valor a pagar ao proprietário:</b> R$${(parseFloat(dadosTransacao.valor)*(1-parseFloat(dadosTransacao.porcentagem))).toFixed(2)}<br>
+                        <br>${listaNomes}
+                        Você também pode conferir os detalhes na aba "Meus Serviços" do site, após realizar o login.<br><br>
+                        Lembre-se de que você ainda deve pagar o restante do valor diretamente ao proprietário da embarcação!<br><br>
+                        Grato,<br>Equipe Speed Wave
+                    `);
+                    conn.commit((err)=>{
+                        if(err){
+                            nodemailer.enviarErro(err.stack);
+                            conn.rollback(()=>{res.send(err.stack);});
+                            return;
+                        }
+                        res.redirect('/#sucesso');
+                    });
                 });
             });
         });

@@ -229,7 +229,8 @@ function carregarPagina(pagina){
                     apiToken = await recuperarDados("/getnet/autenticar"),
                     orderID = await recuperarDados("/api/buscar/pagamentos?colunas=max(id) as id"),
                     nomeSplit = usuario.nome.split(" ", 2),
-                    divFotos = "", nomesFotos = ["proa","popa","traves","interior1","interior2","interior3"];
+                    divFotos = "", nomesFotos = ["proa","popa","traves","interior1","interior2","interior3"],
+                    porcAluguel = 0.1, porcPasseio = 0.172;
                 if(!endereco) endereco = await recuperarDados(`/api/buscar/endereco?filtro=where fk_usuario=${usuario.id}`);
                 orderID = orderID ? orderID[0].id + 1 : 1;
                 //Valores iniciais
@@ -277,14 +278,15 @@ function carregarPagina(pagina){
                     bloquearEnvio("form-pedido", "pay-button-getnet");
                     document.querySelector(".pay-button-getnet").disabled = true;
                     //Valor Inicial
-                    apiGetnet.getnetAmount = detalhesServico.valor.toFixed(2);
-                    apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${detalhesServico.valor.toFixed(2)}, "quantity": 1,"sku": ""}]`;
+                    apiGetnet.getnetAmount = (detalhesServico.valor * porcPasseio).toFixed(2);
+                    apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${(detalhesServico.valor * porcPasseio).toFixed(2)}, "quantity": 1,"sku": ""}]`;
                     //Atualização do valor
+                    let precoTotal = detalhesServico.valor;
                     document.getElementsByName("qtd_passageiros")[0].addEventListener("change", (e)=>{
-                        let precoTotal = detalhesServico.valor * e.currentTarget.value;
+                        precoTotal = (detalhesServico.valor * e.currentTarget.value).toFixed(2);
                         document.getElementById("servico-preco-total").innerHTML = precoTotal;
-                        apiGetnet.getnetAmount = precoTotal.toFixed(2);
-                        apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${precoTotal.toFixed(2)}, "quantity": ${e.currentTarget.value},"sku": ""}]`;
+                        apiGetnet.getnetAmount = (precoTotal * porcPasseio).toFixed(2);
+                        apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Passeio de Barco", "value": ${(precoTotal * porcPasseio).toFixed(2)}, "quantity": ${e.currentTarget.value},"sku": ""}]`;
                         document.getElementById("passageiros-extras").innerHTML = "";
                         if(e.currentTarget.value >= 2){
                             for(let i=2; i<=e.currentTarget.value; i++){
@@ -301,12 +303,12 @@ function carregarPagina(pagina){
                         document.getElementsByName("nome").forEach(nome =>{
                             nomePassageiros += nome.value.replace(",","") + ",";
                         });
-                        apiGetnet.getnetUrlCallback= `/getnet/registrar?bitmask=0,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id}&nome=${nomePassageiros}`;
+                        apiGetnet.getnetUrlCallback= `/getnet/registrar?bitmask=0,${orderID},${detalhesServico.fk_empresa},${precoTotal},${detalhesServico.id},${porcPasseio}&nome=${nomePassageiros}`;
                     });
                 } else{
-                    apiGetnet.getnetAmount = detalhesServico.valor.toFixed(2);
-                    apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Aluguel de Lancha", "value": ${detalhesServico.valor.toFixed(2)}, "quantity": 1,"sku": ""}]`;
-                    apiGetnet.getnetUrlCallback = `/getnet/registrar?bitmask=1,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id}`;
+                    apiGetnet.getnetAmount = (detalhesServico.valor * porcAluguel).toFixed(2);
+                    apiGetnet.getnetItems = `[{"name": "${detalhesServico.nome}","description": "Aluguel de Lancha", "value": ${(detalhesServico.valor * porcAluguel).toFixed(2)}, "quantity": 1,"sku": ""}]`;
+                    apiGetnet.getnetUrlCallback = `/getnet/registrar?bitmask=1,${orderID},${detalhesServico.fk_empresa},${detalhesServico.valor},${detalhesServico.id},${porcAluguel}`;
                 }
                 //Exibir a página
                 document.getElementById("exibicao-carregando").setAttribute("hidden","");
@@ -409,13 +411,13 @@ function carregarPagina(pagina){
                     ?filtro=where fk_usuario=${usuario.id}
                     order by data_aluguel desc`);
                 //Tabela de aluguéis
-                let clienteAlugueis = ["Embarcação","Cidade","Empresa","Valor Pago","Data do Evento"];
+                let clienteAlugueis = ["Embarcação","Cidade","Empresa","Valor Total","Valor a Pagar","Data do Evento"];
                 document.getElementById("tabela-alugueis").innerHTML = gerarTabela(listaAlugueisCliente, clienteAlugueis);
                 if(listaAlugueisCliente.length > 0){
                     $("#tabela-alugueis").DataTable();
                 }
                 //Tabela de passeios
-                let clientePasseios = ["Embarcação","Cidade","Empresa","Nº de Pessoas","Valor Pago","Data do Evento"];
+                let clientePasseios = ["Embarcação","Cidade","Empresa","Nº de Pessoas","Valor Total","Valor a Pagar","Data do Evento"];
                 document.getElementById("tabela-passeios").innerHTML = gerarTabela(listaPasseiosCliente, clientePasseios);
                 if(listaPasseiosCliente.length > 0){
                     $("#tabela-passeios").DataTable();
@@ -695,7 +697,7 @@ function gerarTabela (dados, cabecalhos){
                     }
                     break;
                 case "valor":
-                    tabela+=`<td>${formatarMoeda(dado[valor])}</td>`;
+                    tabela+=`<td>${formatarMoeda(dado.valor)}</td>`;
                     break;
                 case "num_passageiros":
                     if(dado.num_passageiros > 0){
@@ -710,6 +712,9 @@ function gerarTabela (dados, cabecalhos){
                     tabela+=`<td>${dado.num_pessoas} 
                         <button class="btn btn-primary btn-sm ver-pessoas" id="${dado.id}">Ver Lista</button>
                         </td>`;
+                    break;
+                case "porcentagem":
+                    tabela+=`<td>${formatarMoeda(dado.valor * (1-dado.porcentagem))}</td>`;
                     break;
                 default:
                     if(!dado[valor]){
@@ -729,7 +734,6 @@ function gerarTabela (dados, cabecalhos){
 
 //Gera um grupo de cards e insere-o na página
 function gerarCards(divID, lista, campoFoto, link){
-    console.log(lista);
     document.getElementById(divID).innerHTML = "";
     for(let i=0; i<lista.length; i++){
         let titulo, descricao;
