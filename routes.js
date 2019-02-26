@@ -372,18 +372,17 @@ router.get('/getnet/autenticar', (req, res)=>{
 
 //Registro de compra pelo e-commerce da Getnet
 router.post('/getnet/registrar', (req, res)=>{
-    console.log(req.body);
-    let tabelaAluguel,
+    let tabelaAluguel, nomes,
         dadosTransacao = {
-            id : bitmask[1],
-            fk_empresa : bitmask[2],
+            id : req.body.id,
+            fk_empresa : req.body.fk_empresa,
             fk_usuario : req.user.id,
-            valor : bitmask[3],
+            valor : req.body.valor,
             data_pagamento : new Date(),
-            porcentagem : bitmask[5]
+            porcentagem : req.body.porcentagem
         };
-    if(bitmask[0] == 0){
-        nomes = req.query.nome.split(","); //Separa os nomes das pessoas
+    if(req.body.tipoServico == "Passeio de Barco"){
+        nomes = req.body.nomes.split(","); //Separa os nomes das pessoas
         nomes.pop(); //retira o campo em branco no final do array
     }
     mysql.getConnection((err, conn)=>{
@@ -404,15 +403,14 @@ router.post('/getnet/registrar', (req, res)=>{
                     conn.rollback(()=>{res.send(err.stack);});
                     return;
                 }
-                if(bitmask[0] == 0){ //Passeio de barco
+                if(req.body.tipoServico == "Passeio de Barco"){ //Passeio de barco
                     tabelaAluguel = "aluguelbarco_cliente";
-                    tipoServico = "Passeio de Barco";
                     nomes.forEach(nome_passageiro =>{
                         let dadosPassageiro = {
-                            fk_aluguelbarco : bitmask[4],
+                            fk_aluguelbarco : req.body.fk_aluguel,
                             fk_usuario : req.user.id,
                             nome : nome_passageiro,
-                            fk_pagamento : bitmask[1]
+                            fk_pagamento : req.body.id
                         };
                         conn.query("insert into passageiros set ?", dadosPassageiro, (err, results)=>{
                             if(err){
@@ -424,8 +422,7 @@ router.post('/getnet/registrar', (req, res)=>{
                     });
                 } else{ //Aluguel de lancha
                     tabelaAluguel = "alugalancha_cliente";
-                    tipoServico = "Aluguel de Lancha";
-                    let arrayValores = [req.user.id, bitmask[1], "Alugado", bitmask[4]];
+                    let arrayValores = [req.user.id, req.body.id, "Alugado", req.body.fk_aluguel];
                     conn.query("update alugalancha set fk_usuario=?, fk_pagamento=?, status=? where id=?", arrayValores, (err, results)=>{
                         if(err){
                             nodemailer.enviarErro(err.stack);
@@ -434,14 +431,14 @@ router.post('/getnet/registrar', (req, res)=>{
                         }
                     });
                 }
-                conn.query(`select nome_embarcacao, cidade, razao, data_aluguel from ${tabelaAluguel} where id=${bitmask[4]}`, (err, results)=>{
+                conn.query(`select nome_embarcacao, cidade, empresabarco.razao, data_aluguel, empresabarco.email from ${tabelaAluguel} join empresabarco on fk_empresa=empresabarco.id where ${tabelaAluguel}.id=${req.body.fk_aluguel}`, (err, results)=>{
                     if(err){
                         nodemailer.enviarErro(err.stack);
                         conn.rollback(()=>{res.send(err.stack);});
                         return;
                     }
                     let listaNomes="";
-                    if(bitmask[0] == 0){
+                    if(req.body.tipoServico == "Passeio de Barco"){
                         listaNomes += "<b>Lista de pessoas</b><br>";
                         nomes.forEach(nome=>{
                             listaNomes += nome + "<br>";
@@ -450,7 +447,7 @@ router.post('/getnet/registrar', (req, res)=>{
                     }
                     nodemailer.enviarMensagem(req.user.email, "Compra efetuada", `Prezado(a) ${req.user.nome},<br><br>
                         Agradecemos pela sua compra realizada em nosso site! Segue abaixo os detalhes da transação:<br><br>
-                        <b>Tipo de Serviço:</b> ${tipoServico}<br>
+                        <b>Tipo de serviço:</b> ${req.body.tipoServico}<br>
                         <b>Embarcação:</b> ${results[0].nome_embarcacao}<br>
                         <b>Empresa:</b> ${results[0].razao}<br>
                         <b>Cidade:</b> ${results[0].cidade}<br>
@@ -460,7 +457,14 @@ router.post('/getnet/registrar', (req, res)=>{
                         <b>Valor a pagar ao proprietário:</b> R$${(parseFloat(dadosTransacao.valor)*(1-parseFloat(dadosTransacao.porcentagem))).toFixed(2)}<br>
                         <br>${listaNomes}
                         Você também pode conferir os detalhes na aba "Meus Serviços" do site, após realizar o login.<br><br>
-                        Lembre-se de que você ainda deve pagar o restante do valor diretamente ao proprietário da embarcação!<br><br>
+                        Lembre-se de que você ainda deve pagar o restante do valor diretamente ao proprietário da embarcação, que deverá entrar em contato com você em breve.<br><br>
+                        Grato,<br>Equipe Speed Wave
+                    `);
+                    nodemailer.enviarMensagem(results[0].email, "Venda realizada", `${results[0].razao},<br><br>
+                        Foi concluída uma venda de um ${req.body.tipoServico} na embarcação ${results[0].nome_embarcacao} para o nosso cliente ${req.user.nome}, no valor de R$${parseFloat(dadosTransacao.valor).toFixed(2)}. Segue abaixo as informações de contato do cliente, para que ele possa repassar a você o valor restante de R$${(parseFloat(dadosTransacao.valor)*(1-parseFloat(dadosTransacao.porcentagem))).toFixed(2)}.<br><br>
+                        <b>Email do cliente:</b> ${req.user.email}<br>
+                        <b>Telefones do cliente:</b> ${req.user.telefone} / ${req.user.telefone2}<br><br>
+                        Você pode conferir os detalhes da venda na aba "Meus Serviços" do site, após realizar o login.<br><br>
                         Grato,<br>Equipe Speed Wave
                     `);
                     conn.commit((err)=>{

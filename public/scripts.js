@@ -257,6 +257,7 @@ function carregarPagina(pagina){
                     document.getElementById("esconder-cap").removeAttribute("hidden");
                 }
                 document.getElementById("servico-preco").innerHTML = formatarMoeda(detalhesServico.valor);
+                document.getElementById("servico-empresa").innerHTML = formatarMoeda(detalhesServico.razao);
                 document.getElementById("servico-local").innerHTML = detalhesServico.cidade;
                 document.getElementById("servico-data").innerHTML = formatarData(detalhesServico.data_aluguel, true);
                 nomesFotos.forEach(foto=>{
@@ -347,15 +348,16 @@ function carregarPagina(pagina){
                 if(dadosCallback){
                     document.getElementById("div-content").insertAdjacentHTML("beforeend", `
                         <form id="getnet-post" action="/getnet/registrar" method="post" hidden>
-                            <input name="tipoServico" value=${dadosCallback.tipoServico} readonly>
-                            <input name="id" value=${dadosCallback.id} readonly>
-                            <input name="fk_empresa" value=${dadosCallback.fk_empresa} readonly>
-                            <input name="valor" value=${dadosCallback.valor} readonly>
-                            <input name="fk_aluguel" value=${dadosCallback.fk_aluguel} readonly>
-                            <input name="porcentagem" value=${dadosCallback.porcentagem} readonly>
-                            <input name="nomes" value=${dadosCallback.nomes} readonly>
+                            <input name="tipoServico" value="${dadosCallback.tipoServico}" readonly>
+                            <input name="id" value="${dadosCallback.id}" readonly>
+                            <input name="fk_empresa" value="${dadosCallback.fk_empresa}" readonly>
+                            <input name="valor" value="${dadosCallback.valor}" readonly>
+                            <input name="fk_aluguel" value="${dadosCallback.fk_aluguel}" readonly>
+                            <input name="porcentagem" value="${dadosCallback.porcentagem}" readonly>
+                            <input name="nomes" value="${dadosCallback.nomes}" readonly>
                         </form>
-                    `)
+                    `);
+                    dadosCallback = null;
                     document.getElementById("getnet-post").submit();
                 } else carregarPagina("");
                 break;
